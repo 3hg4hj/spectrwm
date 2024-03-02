@@ -12926,32 +12926,6 @@ setconfvalue(uint8_t asop, const char *selector, const char *value, int flags,
 			}
 			token = strtok(NULL, delim);
 		}
-	case SWM_S_REGION_PADDING:
-		char *token;
-		const char *delim = " \t";
-
-		token = strtok((char*)value, delim);
-		for (int j = 0; token != NULL && j < 4; j++) {
-			int pad_value = atoi(token);
-			if (pad_value < 0) {
-				pad_value = 0;
-			}
-			switch (j) {
-				case 0:
-					region_padding[SWM_BOX_TOP] = region_padding[SWM_BOX_RIGHT] = region_padding[SWM_BOX_BOTTOM] = region_padding[SWM_BOX_LEFT] = pad_value;
-					break;
-				case 1:
-					region_padding[SWM_BOX_RIGHT] = region_padding[SWM_BOX_LEFT] = pad_value;
-					break;
-				case 2:
-					region_padding[SWM_BOX_BOTTOM] = pad_value;
-					break;
-				case 3:
-					region_padding[SWM_BOX_LEFT] = pad_value;
-					break;
-			}
-			token = strtok(NULL, delim);
-		}
 		break;
 	case SWM_S_SNAP_RANGE:
 		snap_range = atoi(value);
