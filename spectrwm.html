@@ -128,9 +128,13 @@
 <p class="Pp"></p>
 <div class="Bd Bd-indent"><code class="Li"><var class="Ar">keyword</var>
   <code class="Li">=</code> <var class="Ar">setting</var></code></div>
+<p class="Pp">Where &#x2018;<code class="Li">=</code>&#x2019; may be replaced
+    with &#x2018;<code class="Li">+=</code>&#x2019; or
+    &#x2018;<code class="Li">-=</code>&#x2019;, if supported by the option.</p>
 <p class="Pp">For example:</p>
 <p class="Pp"></p>
 <div class="Bd Bd-indent"><code class="Li">color_focus = red</code></div>
+<div class="Bd Bd-indent"><code class="Li">quirk[XTerm] += FLOAT</code></div>
 <p class="Pp">Enabling or disabling an option is done by using 1 or 0
     respectively.</p>
 <p class="Pp">Colors need to be specified per the
@@ -451,6 +455,10 @@ bar_font = -*-profont-medium-*-*-*-11-*-*-*-*-*-*-*,-*-terminus-medium-*-*-*-14-
         default static format. See the <code class="Ic">bar_format</code> option
         for more details.</p>
   </dd>
+  <dt id="bar_workspace_limit"><a class="permalink" href="#bar_workspace_limit"><code class="Ic">bar_workspace_limit</code></a></dt>
+  <dd>Set the maximum workspace index (counting from 1) to list in the status
+      bar workspace (+L) and urgency hint (+U) indicators. Workspaces beyond
+      this value will not be shown. Default is 0 (disabled).</dd>
   <dt id="bind"><a class="permalink" href="#bind"><code class="Ic">bind</code></a>[<var class="Ar">x</var>]</dt>
   <dd>Bind key or button combo to action <var class="Ar">x</var>. See the
       <a class="Sx" href="#BINDINGS">BINDINGS</a> section below.</dd>
@@ -1592,7 +1600,9 @@ bind[move] = MOD+Button3</pre>
       -1 to put the window into free mode so that it is mapped independent of
       workspaces and regions.</dd>
   <dt>XTERM_FONTADJ</dt>
-  <dd>Adjust <a class="Xr">xterm(1)</a> fonts when resizing.</dd>
+  <dd>Adjust <a class="Xr">xterm(1)</a> fonts when resizing. Note that this
+      needs <span class="Pa">libswmhack.so</span> to work. See the
+      <a class="Sx" href="#SWMHACK">SWMHACK</a> section below.</dd>
 </dl>
 </div>
 <p class="Pp">Custom quirks in the configuration file are specified as
@@ -1600,11 +1610,19 @@ bind[move] = MOD+Button3</pre>
 <p class="Pp"></p>
 <div class="Bd
   Bd-indent"><code class="Li">quirk[<var class="Ar">class</var>[:<var class="Ar">instance</var>[:<var class="Ar">name</var>]]]
-  = <var class="Ar">quirk</var> [+ <var class="Ar">quirk ...</var>]</code></div>
+  {=|+=|-=} <var class="Ar">quirk</var> [+ <var class="Ar">quirk
+  ...</var>]</code></div>
 <p class="Pp"><var class="Ar">class</var>, <var class="Ar">instance</var>
     (optional) and <var class="Ar">name</var> (optional) are patterns used to
     determine which window(s) the quirk(s) apply to and
     <var class="Ar">quirk</var> is one of the quirks from the list above.</p>
+<p class="Pp">When a window is managed, quirk entries are applied in the order
+    specified in the configuration file. The assignment operator determines how
+    the quirks are applied. When assigning quirks with
+    &#x2018;<code class="Li">=</code>&#x2019;, quirks are replaced on matching
+    windows. To add or remove quirks, assign them with
+    &#x2018;<code class="Li">+=</code>&#x2019; or
+    &#x2018;<code class="Li">-=</code>&#x2019; instead.</p>
 <p class="Pp">Note that patterns are interpreted as POSIX Extended Regular
     Expressions. Any ':', '[' or ']' must be escaped with '\'. See
     <a class="Xr">regex(7)</a> for more information on POSIX Extended Regular
@@ -1614,10 +1632,11 @@ bind[move] = MOD+Button3</pre>
 <pre>quirk[MPlayer] = FLOAT + FULLSCREEN + FOCUSPREV # Float all windows having a class of 'MPlayer'
 quirk[.*] = FLOAT # Float all windows by default.
 quirk[.*:.*:.*] = FLOAT # Same as above.
-quirk[Firefox:Navigator] = FLOAT # Float all Firefox browser windows.
+quirk[firefox:Navigator] = FLOAT # Float all Firefox browser windows.
 quirk[::Console] = FLOAT # Float windows with WM_CLASS not set and a window name of 'Console'.
 quirk[\[0-9\].*:.*:\[\[\:alnum\:\]\]*] = FLOAT # Float windows with WM_CLASS class beginning with a number, any WM_CLASS instance and a _NET_WM_NAME/WM_NAME either blank or containing alphanumeric characters without spaces.
-quirk[pcb:pcb] = NONE # remove existing quirk</pre>
+quirk[pcb:pcb] = NONE # Remove the default quirk entry.
+quirk[.*:ws10] += WS[10] # Force windows with a WM_CLASS name of 'ws10' to workspace 10 without removing existing quirks.</pre>
 </div>
 <p class="Pp">You can obtain <var class="Ar">class</var>,
     <var class="Ar">instance</var> and <var class="Ar">name</var> by running
@@ -1777,6 +1796,13 @@ $ xprop -id $WINDOWID _NET_WM_NAME | grep -o &quot;\&quot;.*\&quot;&quot;</pre>
 <div class="Bd Pp Bd-indent Li">
 <pre>autorun = ws[2]:xterm -name ws2
 quirk[XTerm:ws2] = WS[2]</pre>
+</div>
+<p class="Pp">If the &quot;spawn-in-workspace&quot; behavior is not desired, it
+    is possible to disable it globally by setting the
+    <span class="Pa">IGNORESPAWNWS</span> and <span class="Pa">IGNOREPID</span>
+    quirks for all windows:</p>
+<div class="Bd Pp Bd-indent Li">
+<pre>quirk[.*] += IGNORESPAWNWS + IGNOREPID</pre>
 </div>
 <p class="Pp">Note that XCB programs are currently unsupported by
     <span class="Pa">libswmhack.so</span>.</p>
