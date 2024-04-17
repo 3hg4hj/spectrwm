@@ -810,10 +810,14 @@ enum {
 	SWM_S_COLOR_FOCUS_MAXIMIZED,
 	SWM_S_COLOR_UNFOCUS,
 	SWM_S_COLOR_UNFOCUS_MAXIMIZED,
+	SWM_S_COLOR_URGENT,
+	SWM_S_COLOR_URGENT_MAXIMIZED,
 	SWM_S_COLOR_FOCUS_FREE,
 	SWM_S_COLOR_FOCUS_MAXIMIZED_FREE,
 	SWM_S_COLOR_UNFOCUS_FREE,
 	SWM_S_COLOR_UNFOCUS_MAXIMIZED_FREE,
+	SWM_S_COLOR_URGENT_FREE,
+	SWM_S_COLOR_URGENT_MAXIMIZED_FREE,
 	SWM_S_COLOR_MAX
 };
 
@@ -1182,15 +1186,22 @@ struct bar_section	*bsect = NULL;
 int			maxsect = 0;
 int			numsect;
 
-#define SWM_SPAWN_OPTIONAL		0x1
-
 /* spawn */
+#define SWM_SPAWN_OPTIONAL		(1 << 0)
+#define SWM_SPAWN_CLOSE_FD		(1 << 1)
+#define SWM_SPAWN_XTERM_FONTADJ		(1 << 2)
+#define SWM_SPAWN_WS			(1 << 3)
+#define SWM_SPAWN_PID			(1 << 4)
+#define SWM_SPAWN_NOSPAWNWS		(1 << 5)
+
+unsigned int		spawn_flags = 0;
+
 struct spawn_prog {
 	TAILQ_ENTRY(spawn_prog)	entry;
 	char			*name;
 	int			argc;
 	char			**argv;
-	int			flags;
+	unsigned int		flags;
 };
 TAILQ_HEAD(spawn_list, spawn_prog) spawns = TAILQ_HEAD_INITIALIZER(spawns);
 
@@ -1416,12 +1427,13 @@ bool	 button_has_binding(uint32_t);
 void	 buttonpress(xcb_button_press_event_t *);
 void	 buttonrelease(xcb_button_release_event_t *);
 void	 center_pointer(struct swm_region *);
+static char	*cleanopt(char *);
 void	 clear_atom_names(void);
 static void	 clear_attention(struct ws_win *);
 void	 clear_bindings(void);
 void	 clear_keybindings(void);
 void	 clear_quirks(void);
-void	 clear_spawns(void);
+static void	 clear_spawns(void);
 void	 click_focus(struct swm_screen *, xcb_window_t, int, int);
 void	 client_msg(struct ws_win *, xcb_atom_t, xcb_timestamp_t);
 void	 clientmessage(xcb_client_message_event_t *);
@@ -1581,6 +1593,7 @@ int	 parse_color(struct swm_screen *, const char *, struct swm_color *);
 int	 parse_rgb(const char *, uint16_t *, uint16_t *, uint16_t *);
 int	 parse_rgba(const char *, uint16_t *, uint16_t *, uint16_t *,
 	     uint16_t *);
+static int	 parse_spawn_flags(const char *, uint32_t *, char **);
 int	 parse_workspace_indicator(const char *, uint32_t *, char **);
 int	 parsebinding(const char *, uint16_t *, enum binding_type *, uint32_t *,
 	     uint32_t *, char **);
@@ -1656,6 +1669,8 @@ int	 setconfmodkey(uint8_t, const char *, const char *, int, char **);
 int	 setconfquirk(uint8_t, const char *, const char *, int, char **);
 int	 setconfregion(uint8_t, const char *, const char *, int, char **);
 int	 setconfspawn(uint8_t, const char *, const char *, int, char **);
+static int	 setconfspawnflags(uint8_t, const char *, const char *, int,
+		     char **);
 int	 setconfvalue(uint8_t, const char *, const char *, int, char **);
 int	 setkeymapping(uint8_t, const char *, const char *, int, char **);
 int	 setlayout(uint8_t, const char *, const char *, int, char **);
@@ -1663,7 +1678,7 @@ static int	 setlayoutorder(const char *, char **);
 void	 setquirk(const char *, const char *, const char *, uint8_t, uint32_t,
 	     int);
 static void	 setscreencolor(struct swm_screen *, const char *, int, int);
-void	 setspawn(const char *, const char *, int);
+static void	 setspawn(const char *, const char *, unsigned int);
 void	 setup_btnbindings(void);
 void	 setup_ewmh(void);
 void	 setup_extensions(void);
@@ -1681,13 +1696,13 @@ void	 setup_xinput2(struct swm_screen *);
 void	 shutdown_cleanup(void);
 void	 sighdlr(int);
 void	 socket_setnonblock(int);
-void	 spawn(int, union arg *, bool);
-void	 spawn_custom(struct swm_region *, union arg *, const char *);
-int	 spawn_expand(struct swm_region *, union arg *, const char *, char ***);
-struct spawn_prog	*spawn_find(const char *);
-void	 spawn_insert(const char *, const char *, int);
-void	 spawn_remove(struct spawn_prog *);
-void	 spawn_replace(struct spawn_prog *, const char *, const char *, int);
+static void	 spawn(int, union arg *, unsigned int);
+static void	 spawn_custom(struct swm_screen *, union arg *, const char *);
+static int	 spawn_expand(struct swm_screen *, struct spawn_prog *, int,
+		     char ***);
+static struct spawn_prog	*spawn_find(const char *);
+static void	 spawn_insert(const char *, const char *, unsigned int);
+static void	 spawn_remove(struct spawn_prog *);
 void	 spawn_select(struct swm_region *, union arg *, const char *, int *);
 static xcb_window_t	 st_window_id(struct swm_stackable *);
 void	 stack_config(struct swm_screen *, struct binding *, union arg *);
@@ -2648,6 +2663,9 @@ ewmh_apply_flags(struct ws_win *win, uint32_t pending)
 			store_float_geom(win);
 	}
 
+	if (changed & EWMH_F_DEMANDS_ATTENTION)
+		draw_frame(win);
+
 	if (changed & EWMH_F_MAXIMIZED) {
 		/* VERT and/or HORZ changed. */
 		if (ABOVE(win) || BELOW(win)) {
@@ -3493,10 +3511,26 @@ getcolor(struct swm_screen *s, int c, int i)
 	case SWM_S_COLOR_UNFOCUS_MAXIMIZED:
 		c = SWM_S_COLOR_UNFOCUS;
 		break;
+	case SWM_S_COLOR_URGENT_MAXIMIZED:
+		c = SWM_S_COLOR_URGENT;
+		if (i >= s->c[c].count || s->c[c].colors[i] == NULL)
+			c = SWM_S_COLOR_UNFOCUS;
+		break;
 	case SWM_S_COLOR_FOCUS_MAXIMIZED_FREE:
 		c = SWM_S_COLOR_FOCUS_FREE;
 		break;
 	case SWM_S_COLOR_UNFOCUS_MAXIMIZED_FREE:
+		c = SWM_S_COLOR_UNFOCUS_FREE;
+		break;
+	case SWM_S_COLOR_URGENT_MAXIMIZED_FREE:
+		c = SWM_S_COLOR_URGENT_FREE;
+		if (i >= s->c[c].count || s->c[c].colors[i] == NULL)
+			c = SWM_S_COLOR_UNFOCUS_FREE;
+		break;
+	case SWM_S_COLOR_URGENT:
+		c = SWM_S_COLOR_UNFOCUS;
+		break;
+	case SWM_S_COLOR_URGENT_FREE:
 		c = SWM_S_COLOR_UNFOCUS_FREE;
 		break;
 	default:
@@ -3873,7 +3907,6 @@ bar_print_layout(struct swm_region *r)
 			fn = frag->font;
 			fg = frag->fg;
 			bg = frag->bg;
-			xf = r->s->bar_xftfonts[fn];
 
 			/* Paint background color of the text fragment  */
 			if (bg != 0) {
@@ -3896,6 +3929,7 @@ bar_print_layout(struct swm_region *r)
 				    - bsect[i].height) / 2 - bsect[i].ypos,
 				    frag->text, frag->length);
 			} else {
+				xf = r->s->bar_xftfonts[fn];
 				XftDrawStringUtf8(xft_draw, getcolorxft(r->s,
 				    fg_type, fg), xf, xpos, bar_border_width +
 				    (HEIGHT(r->bar) + xf->height) / 2
@@ -6098,8 +6132,8 @@ find_window(xcb_window_t id)
 	return (win);
 }
 
-void
-spawn(int ws_idx, union arg *args, bool close_fd)
+static void
+spawn(int ws_idx, union arg *args, unsigned int flags)
 {
 	int			fd;
 	char			*ret = NULL;
@@ -6107,43 +6141,53 @@ spawn(int ws_idx, union arg *args, bool close_fd)
 	if (args == NULL || args->argv[0] == NULL)
 		return;
 
-	DNPRINTF(SWM_D_MISC, "%s\n", args->argv[0]);
+	DNPRINTF(SWM_D_MISC, "ws:%d f:%#x %s\n", ws_idx, flags, args->argv[0]);
 
 	close(xcb_get_file_descriptor(conn));
 
-	if ((ret = getenv("LD_PRELOAD"))) {
-		if (asprintf(&ret, "%s:%s", SWM_LIB, ret) == -1) {
-			warn("spawn: asprintf LD_PRELOAD");
-			_exit(1);
+	if (flags & (SWM_SPAWN_WS | SWM_SPAWN_PID | SWM_SPAWN_XTERM_FONTADJ)) {
+		if ((ret = getenv("LD_PRELOAD"))) {
+			if (asprintf(&ret, "%s:%s", SWM_LIB, ret) == -1) {
+				warn("spawn: asprintf LD_PRELOAD");
+				_exit(1);
+			}
+			setenv("LD_PRELOAD", ret, 1);
+			free(ret);
+			ret = NULL;
+		} else {
+			setenv("LD_PRELOAD", SWM_LIB, 1);
 		}
-		setenv("LD_PRELOAD", ret, 1);
-		free(ret);
-	} else {
-		setenv("LD_PRELOAD", SWM_LIB, 1);
-	}
 
-	if (asprintf(&ret, "%d", ws_idx) == -1) {
-		warn("spawn: asprintf SWM_WS");
-		_exit(1);
-	}
-	setenv("_SWM_WS", ret, 1);
-	free(ret);
-	ret = NULL;
+		if (flags & SWM_SPAWN_WS) {
+			if (asprintf(&ret, "%d", ws_idx) == -1) {
+				warn("spawn: asprintf SWM_WS");
+				_exit(1);
+			}
+			setenv("_SWM_WS", ret, 1);
+			free(ret);
+			ret = NULL;
+		}
 
-	if (asprintf(&ret, "%d", getpid()) == -1) {
-		warn("spawn: asprintf _SWM_PID");
-		_exit(1);
+		if (flags & SWM_SPAWN_PID) {
+			if (asprintf(&ret, "%d", getpid()) == -1) {
+				warn("spawn: asprintf _SWM_PID");
+				_exit(1);
+			}
+			setenv("_SWM_PID", ret, 1);
+			free(ret);
+			ret = NULL;
+		}
+
+		if (flags & SWM_SPAWN_XTERM_FONTADJ)
+			setenv("_SWM_XTERM_FONTADJ", "", 1);
 	}
-	setenv("_SWM_PID", ret, 1);
-	free(ret);
-	ret = NULL;
 
 	if (setsid() == -1) {
 		warn("spawn: setsid");
 		_exit(1);
 	}
 
-	if (close_fd) {
+	if (flags & SWM_SPAWN_CLOSE_FD) {
 		/*
 		 * close stdin and stdout to prevent interaction between apps
 		 * and the baraction script
@@ -10047,6 +10091,15 @@ draw_frame(struct ws_win *win)
 			gcv[0] = getcolorpixel(win->s, (MAXIMIZED(win) ?
 			    SWM_S_COLOR_FOCUS_MAXIMIZED :
 			    SWM_S_COLOR_FOCUS), 0);
+	} else if (win_urgent(win)) {
+		if (win_free(win))
+			gcv[0] = getcolorpixel(win->s, (MAXIMIZED(win) ?
+			    SWM_S_COLOR_URGENT_MAXIMIZED_FREE :
+			    SWM_S_COLOR_URGENT_FREE), 0);
+		else
+			gcv[0] = getcolorpixel(win->s, (MAXIMIZED(win) ?
+			    SWM_S_COLOR_URGENT_MAXIMIZED :
+			    SWM_S_COLOR_URGENT), 0);
 	} else {
 		if (win_free(win))
 			gcv[0] = getcolorpixel(win->s, (MAXIMIZED(win) ?
@@ -11027,85 +11080,87 @@ update_keycodes(void)
 		cancel_keycode = get_keysym_keycode(CANCELKEY);
 }
 
-int
-spawn_expand(struct swm_region *r, union arg *args, const char *spawn_name,
+static int
+spawn_expand(struct swm_screen *s, struct spawn_prog *prog, int wsid,
     char ***ret_args)
 {
-	struct spawn_prog	*prog = NULL;
+	struct swm_region	*r;
 	int			i, c;
 	char			*ap, **real_args;
 
-	/* Suppress warning. */
-	(void)args;
+	r = get_current_region(s);
 
-	DNPRINTF(SWM_D_SPAWN, "%s\n", spawn_name);
-
-	/* find program */
-	TAILQ_FOREACH(prog, &spawns, entry) {
-		if (strcasecmp(spawn_name, prog->name) == 0)
-			break;
-	}
-	if (prog == NULL) {
-		warnx("spawn_custom: program %s not found", spawn_name);
-		return (-1);
-	}
+	DNPRINTF(SWM_D_SPAWN, "%s\n", prog->name);
 
 	/* make room for expanded args */
 	if ((real_args = calloc(prog->argc + 1, sizeof(char *))) == NULL)
 		err(1, "spawn_custom: calloc real_args");
 
-	/* expand spawn_args into real_args */
+	/* Expand spawn args into real_args. */
 	for (i = c = 0; i < prog->argc; i++) {
 		ap = prog->argv[i];
 		DNPRINTF(SWM_D_SPAWN, "raw arg: %s\n", ap);
 		if (strcasecmp(ap, "$bar_border") == 0) {
 			real_args[c] =
-			    getcolorrgb(r->s, SWM_S_COLOR_BAR_BORDER, 0);
+			    getcolorrgb(s, SWM_S_COLOR_BAR_BORDER, 0);
 		} else if (strcasecmp(ap, "$bar_color") == 0) {
-			real_args[c] = getcolorrgb(r->s, SWM_S_COLOR_BAR, 0);
+			real_args[c] = getcolorrgb(s, SWM_S_COLOR_BAR, 0);
 		} else if (strcasecmp(ap, "$bar_color_selected") == 0) {
 			real_args[c] =
-			    getcolorrgb(r->s, SWM_S_COLOR_BAR_SELECTED, 0);
+			    getcolorrgb(s, SWM_S_COLOR_BAR_SELECTED, 0);
 		} else if (strcasecmp(ap, "$bar_font") == 0) {
 			if ((real_args[c] = strdup(bar_fonts)) == NULL)
 				err(1, "spawn_custom: bar_fonts strdup");
 		} else if (strcasecmp(ap, "$bar_font_color") == 0) {
 			real_args[c] =
-			    getcolorrgb(r->s, SWM_S_COLOR_BAR_FONT, 0);
+			    getcolorrgb(s, SWM_S_COLOR_BAR_FONT, 0);
 		} else if (strcasecmp(ap, "$bar_font_color_selected") == 0) {
 			real_args[c] =
-			    getcolorrgb(r->s, SWM_S_COLOR_BAR_FONT_SELECTED, 0);
+			    getcolorrgb(s, SWM_S_COLOR_BAR_FONT_SELECTED, 0);
 		} else if (strcasecmp(ap, "$color_focus_free") == 0) {
 			real_args[c] =
-			    getcolorrgb(r->s, SWM_S_COLOR_FOCUS_FREE, 0);
+			    getcolorrgb(s, SWM_S_COLOR_FOCUS_FREE, 0);
 		} else if (strcasecmp(ap, "$color_focus_maximized_free") == 0) {
-			real_args[c] = getcolorrgb(r->s,
+			real_args[c] = getcolorrgb(s,
 			    SWM_S_COLOR_FOCUS_MAXIMIZED_FREE, 0);
 		} else if (strcasecmp(ap, "$color_unfocus_free") == 0) {
 			real_args[c] =
-			    getcolorrgb(r->s, SWM_S_COLOR_UNFOCUS_FREE, 0);
+			    getcolorrgb(s, SWM_S_COLOR_UNFOCUS_FREE, 0);
 		} else if (strcasecmp(ap,
 		    "$color_unfocus_maximized_free") == 0) {
-			real_args[c] = getcolorrgb(r->s,
+			real_args[c] = getcolorrgb(s,
 			    SWM_S_COLOR_UNFOCUS_MAXIMIZED_FREE, 0);
+		} else if (strcasecmp(ap, "$color_urgent_free") == 0) {
+			real_args[c] =
+			    getcolorrgb(r->s, SWM_S_COLOR_URGENT_FREE, 0);
+		} else if (strcasecmp(ap,
+		    "$color_urgent_maximized_free") == 0) {
+			real_args[c] = getcolorrgb(r->s,
+			    SWM_S_COLOR_URGENT_MAXIMIZED_FREE, 0);
 		} else if (strcasecmp(ap, "$color_focus") == 0) {
 			real_args[c] =
-			    getcolorrgb(r->s, SWM_S_COLOR_FOCUS, 0);
+			    getcolorrgb(s, SWM_S_COLOR_FOCUS, 0);
 		} else if (strcasecmp(ap, "$color_focus_maximized") == 0) {
 			real_args[c] =
-			    getcolorrgb(r->s, SWM_S_COLOR_FOCUS_MAXIMIZED, 0);
+			    getcolorrgb(s, SWM_S_COLOR_FOCUS_MAXIMIZED, 0);
 		} else if (strcasecmp(ap, "$color_unfocus") == 0) {
 			real_args[c] =
-			    getcolorrgb(r->s, SWM_S_COLOR_UNFOCUS, 0);
+			    getcolorrgb(s, SWM_S_COLOR_UNFOCUS, 0);
 		} else if (strcasecmp(ap, "$color_unfocus_maximized") == 0) {
 			real_args[c] =
-			    getcolorrgb(r->s, SWM_S_COLOR_UNFOCUS_MAXIMIZED, 0);
+			    getcolorrgb(s, SWM_S_COLOR_UNFOCUS_MAXIMIZED, 0);
+		} else if (strcasecmp(ap, "$color_urgent") == 0) {
+			real_args[c] =
+			    getcolorrgb(s, SWM_S_COLOR_URGENT, 0);
+		} else if (strcasecmp(ap, "$color_urgent_maximized") == 0) {
+			real_args[c] =
+			    getcolorrgb(s, SWM_S_COLOR_URGENT_MAXIMIZED, 0);
 		} else if (strcasecmp(ap, "$region_index") == 0) {
 			if (asprintf(&real_args[c], "%d",
 			    get_region_index(r)) < 1)
 				err(1, "spawn_custom: region_index asprintf");
 		} else if (strcasecmp(ap, "$workspace_index") == 0) {
-			if (asprintf(&real_args[c], "%d", r->ws->idx + 1) < 1)
+			if (asprintf(&real_args[c], "%d", wsid + 1) < 1)
 				err(1, "spawn_custom: workspace_index "
 				    "asprintf");
 		} else if (strcasecmp(ap, "$dmenu_bottom") == 0) {
@@ -11133,21 +11188,40 @@ spawn_expand(struct swm_region *r, union arg *args, const char *spawn_name,
 	return (c);
 }
 
-void
-spawn_custom(struct swm_region *r, union arg *args, const char *spawn_name)
+static void
+spawn_custom(struct swm_screen *s, union arg *args, const char *spawn_name)
 {
+	struct spawn_prog	*prog;
+	struct swm_region	*r;
 	union arg		a;
 	char			**real_args;
-	int			spawn_argc, i;
+	unsigned int		flags;
+	int			spawn_argc, i, wsid;
 
-	if (r == NULL)
+	(void)args;
+
+	if (s == NULL)
 		return;
 
-	if ((spawn_argc = spawn_expand(r, args, spawn_name, &real_args)) < 0)
+	if ((prog = spawn_find(spawn_name)) == NULL) {
+		warnx("spawn_custom: program %s not found", spawn_name);
 		return;
+	}
+
+	r = get_current_region(s);
+	wsid = r->ws->idx;
+
+	if ((spawn_argc = spawn_expand(s, prog, wsid, &real_args)) < 0)
+		return;
+
 	a.argv = real_args;
+
+	flags = prog->flags | SWM_SPAWN_CLOSE_FD;
+	if (!(flags & SWM_SPAWN_NOSPAWNWS))
+		flags |= SWM_SPAWN_WS;
+
 	if (fork() == 0)
-		spawn(r->ws->idx, &a, true);
+		spawn(wsid, &a, flags);
 
 	for (i = 0; i < spawn_argc; i++)
 		free(real_args[i]);
@@ -11158,11 +11232,21 @@ void
 spawn_select(struct swm_region *r, union arg *args, const char *spawn_name,
     int *pid)
 {
+	struct spawn_prog	*prog;
 	union arg		a;
 	char			**real_args;
-	int			i, spawn_argc;
+	int			i, spawn_argc, wsid;
 
-	if ((spawn_argc = spawn_expand(r, args, spawn_name, &real_args)) < 0)
+	(void)args;
+
+	wsid = r->ws->idx;
+
+	if ((prog = spawn_find(spawn_name)) == NULL) {
+		warnx("spawn_select: program %s not found", spawn_name);
+		return;
+	}
+
+	if ((spawn_argc = spawn_expand(r->s, prog, wsid, &real_args)) < 0)
 		return;
 	a.argv = real_args;
 
@@ -11188,7 +11272,7 @@ spawn_select(struct swm_region *r, union arg *args, const char *spawn_name,
 		}
 		close(select_list_pipe[1]);
 		close(select_resp_pipe[0]);
-		spawn(r->ws->idx, &a, false);
+		spawn(wsid, &a, 0);
 		break;
 	default: /* parent */
 		close(select_list_pipe[0]);
@@ -11280,8 +11364,8 @@ unescape_value(const char *value) {
 	return (result);
 }
 
-void
-spawn_insert(const char *name, const char *args, int flags)
+static void
+spawn_insert(const char *name, const char *args, unsigned int flags)
 {
 	struct spawn_prog	*sp;
 	char			*arg, *cp, *ptr;
@@ -11324,7 +11408,7 @@ spawn_insert(const char *name, const char *args, int flags)
 	DNPRINTF(SWM_D_SPAWN, "leave\n");
 }
 
-void
+static void
 spawn_remove(struct spawn_prog *sp)
 {
 	int			i;
@@ -11341,7 +11425,7 @@ spawn_remove(struct spawn_prog *sp)
 	DNPRINTF(SWM_D_SPAWN, "leave\n");
 }
 
-void
+static void
 clear_spawns(void)
 {
 	struct spawn_prog	*sp;
@@ -11352,7 +11436,7 @@ clear_spawns(void)
 #endif
 }
 
-struct spawn_prog*
+static struct spawn_prog *
 spawn_find(const char *name)
 {
 	struct spawn_prog	*sp;
@@ -11364,8 +11448,8 @@ spawn_find(const char *name)
 	return (NULL);
 }
 
-void
-setspawn(const char *name, const char *args, int flags)
+static void
+setspawn(const char *name, const char *args, unsigned int flags)
 {
 	struct spawn_prog	*sp;
 
@@ -11411,23 +11495,188 @@ asopcheck(uint8_t asop, uint8_t allowed, char **emsg)
 	return (0);
 }
 
+static char *
+cleanopt(char *str)
+{
+	char	*p;
+
+	/* Trim leading/trailing whitespace. */
+	str += strspn(str, SWM_CONF_WHITESPACE);
+	p = str + strlen(str) - 1;
+	while (p > str && strchr(SWM_CONF_WHITESPACE, *p))
+		*p-- = '\0';
+
+	return (str);
+}
+
+struct spawn_flag {
+	char		*name;
+	unsigned int	mask;
+} spawnflags[] = {
+	{"none",		0},
+	{"optional",		SWM_SPAWN_OPTIONAL},
+	{"nospawnws",		SWM_SPAWN_NOSPAWNWS},
+	{"xterm_fontadj",	SWM_SPAWN_XTERM_FONTADJ},
+};
+
+static int
+parse_spawn_flags(const char *str, uint32_t *flags, char **emsg)
+{
+	char			*tmp, *cp, *name;
+	int			i, count;
+
+	if (str == NULL || flags == NULL)
+		return (1);
+
+	if ((cp = tmp = strdup(str)) == NULL)
+		err(1, "parse_spawn_flags: strdup");
+
+	*flags = 0;
+	count = 0;
+	while ((name = strsep(&cp, SWM_CONF_DELIMLIST)) != NULL) {
+		name = cleanopt(name);
+		if (*name == '\0')
+			continue;
+
+		for (i = 0; i < LENGTH(spawnflags); i++) {
+			if (strcmp(name, spawnflags[i].name) == 0) {
+				DNPRINTF(SWM_D_CONF, "flag: [%s]\n", name);
+				*flags |= spawnflags[i].mask;
+				break;
+			}
+		}
+		if (i >= LENGTH(spawnflags)) {
+			ALLOCSTR(emsg, "invalid spawn flag: %s", name);
+			DNPRINTF(SWM_D_CONF, "invalid spawn flag: [%s]\n",
+			    name);
+			free(tmp);
+			return (1);
+		}
+		count++;
+	}
+
+	if (count == 0) {
+		ALLOCSTR(emsg, "missing spawn flag");
+		free(tmp);
+		return(1);
+	}
+
+	free(tmp);
+	return (0);
+}
+
+static int
+setconfspawnflags(uint8_t asop, const char *selector, const char *value,
+    int flags, char **emsg)
+{
+	struct spawn_prog	*sp = NULL;
+	unsigned int		sflags;
+	char			*name;
+	regex_t			regex_name;
+	int			count;
+
+	/* Suppress warning. */
+	(void)flags;
+
+	if (asopcheck(asop, SWM_ASOP_BASIC | SWM_ASOP_ADD | SWM_ASOP_SUBTRACT,
+	    emsg))
+		return (1);
+
+	/* If no selector, set default spawn flags. */
+	if (selector == NULL || strlen(selector) == 0) {
+		if (parse_spawn_flags(value, &sflags, emsg))
+			return (1);
+
+		switch (asop) {
+		case SWM_ASOP_ADD:
+			spawn_flags |= sflags;
+			break;
+		case SWM_ASOP_SUBTRACT:
+			spawn_flags &= ~sflags;
+			break;
+		case SWM_ASOP_BASIC:
+		default:
+			spawn_flags = sflags;
+			break;
+		}
+
+		DNPRINTF(SWM_D_KEY, "set spawn_flags: %#x\n", spawn_flags);
+		return (0);
+	}
+
+	/* Otherwise, search for spawn entries and set their spawn flags. */
+	if (asprintf(&name, "^%s$", selector) == -1)
+		err(1, "setconfspawnflags: asprintf");
+
+	if (regcomp(&regex_name, name, REG_EXTENDED | REG_NOSUB)) {
+		ALLOCSTR(emsg, "invalid regex: %s", selector);
+		free(name);
+		return (1);
+	}
+	free(name);
+
+	if (parse_spawn_flags(value, &sflags, emsg))
+		return (1);
+
+	count = 0;
+	TAILQ_FOREACH(sp, &spawns, entry) {
+		if (regexec(&regex_name, sp->name, 0, NULL, 0) == 0) {
+			switch (asop) {
+			case SWM_ASOP_ADD:
+				sp->flags |= sflags;
+				break;
+			case SWM_ASOP_SUBTRACT:
+				sp->flags &= ~sflags;
+				break;
+			case SWM_ASOP_BASIC:
+			default:
+				sp->flags = sflags;
+				break;
+			}
+
+			DNPRINTF(SWM_D_KEY, "set %s flags: %#x\n", sp->name,
+			    sp->flags);
+			count++;
+		}
+	}
+
+	if (count == 0) {
+		ALLOCSTR(emsg, "program entry not found: %s", selector);
+		return (1);
+	}
+
+	return (0);
+}
+
 int
 setconfspawn(uint8_t asop, const char *selector, const char *value, int flags,
     char **emsg)
 {
-	char		*args;
+	char		*name, *args, *str;
+
+	/* Suppress warning. */
+	(void)flags;
 
 	if (selector == NULL || strlen(selector) == 0) {
 		ALLOCSTR(emsg, "missing selector");
 		return (1);
 	}
+
 	if (asopcheck(asop, SWM_ASOP_BASIC, emsg))
 		return (1);
+
+	if ((str = strdup(selector)) == NULL)
+		err(1, "setconfspawn: strdup");
+
+	name = str;
+	unescape_selector(name);
+
 	args = expand_tilde(value);
 
-	DNPRINTF(SWM_D_SPAWN, "[%s] [%s]\n", selector, args);
+	DNPRINTF(SWM_D_SPAWN, "[%s] flags:%#x [%s]\n", name, spawn_flags, args);
 
-	setspawn(selector, args, flags);
+	setspawn(name, args, spawn_flags);
+	free(str);
 	free(args);
 
 	DNPRINTF(SWM_D_SPAWN, "done\n");
@@ -11469,9 +11718,11 @@ void
 setup_spawn(void)
 {
 	setconfspawn(SWM_ASOP_BASIC, "lock", "xlock", 0, NULL);
-
 	setconfspawn(SWM_ASOP_BASIC, "term", "xterm", 0, NULL);
+	setconfspawnflags(SWM_ASOP_BASIC, "term", "xterm_fontadj", 0, NULL);
 	setconfspawn(SWM_ASOP_BASIC, "spawn_term", "xterm", 0, NULL);
+	setconfspawnflags(SWM_ASOP_BASIC, "spawn_term", "xterm_fontadj", 0,
+	    NULL);
 
 	setconfspawn(SWM_ASOP_BASIC, "menu", "dmenu_run $dmenu_bottom "
 	    "-fn $bar_font -nb $bar_color -nf $bar_font_color "
@@ -11486,12 +11737,16 @@ setup_spawn(void)
 	    "-sb $bar_color_selected -sf $bar_font_color_selected", 0, NULL);
 
 	 /* These are not verified for existence, even with a binding set. */
-	setconfspawn(SWM_ASOP_BASIC, "screenshot_all", "screenshot.sh full",
-	    SWM_SPAWN_OPTIONAL, NULL);
+	setconfspawn(SWM_ASOP_BASIC, "screenshot_all", "screenshot.sh full", 0,
+	    NULL);
+	setconfspawnflags(SWM_ASOP_BASIC, "screenshot_all", "optional", 0,
+	    NULL);
 	setconfspawn(SWM_ASOP_BASIC, "screenshot_wind", "screenshot.sh window",
-	    SWM_SPAWN_OPTIONAL, NULL);
-	setconfspawn(SWM_ASOP_BASIC, "initscr", "initscreen.sh",
-	    SWM_SPAWN_OPTIONAL, NULL);
+	    0, NULL);
+	setconfspawnflags(SWM_ASOP_BASIC, "screenshot_wind", "optional", 0,
+	    NULL);
+	setconfspawn(SWM_ASOP_BASIC, "initscr", "initscreen.sh", 0, NULL);
+	setconfspawnflags(SWM_ASOP_BASIC, "initscr", "optional", 0, NULL);
 }
 
 static char *
@@ -12314,8 +12569,7 @@ rawbuttonpress(xcb_input_raw_button_press_event_t *e)
 
 	if ((ap = &actions[bp->action])) {
 		if (bp->action == FN_SPAWN_CUSTOM)
-			spawn_custom(get_current_region(s), &ap->args,
-			    bp->spawn_name);
+			spawn_custom(s, &ap->args, bp->spawn_name);
 		else if (ap->func)
 			ap->func(s, bp, &ap->args);
 	}
@@ -12558,8 +12812,8 @@ quirk_insert(const char *class, const char *instance, const char *name,
 	if (asprintf(&str, "^%s$", class) == -1)
 		err(1, "quirk_insert: asprintf");
 	if (regcomp(&qp->regex_class, str, REG_EXTENDED | REG_NOSUB)) {
-		add_startup_exception("regex failed to compile quirk 'class' "
-		    "field: %s", class);
+		add_startup_exception("invalid regex for 'class' field: %s",
+		    class);
 		failed = true;
 	}
 	DNPRINTF(SWM_D_QUIRK, "compiled: %s\n", str);
@@ -12568,8 +12822,8 @@ quirk_insert(const char *class, const char *instance, const char *name,
 	if (asprintf(&str, "^%s$", instance) == -1)
 		err(1, "quirk_insert: asprintf");
 	if (regcomp(&qp->regex_instance, str, REG_EXTENDED | REG_NOSUB)) {
-		add_startup_exception("regex failed to compile quirk 'instance'"
-		    " field: %s", instance);
+		add_startup_exception("invalid regex for 'instance' field: %s",
+		    class);
 		failed = true;
 	}
 	DNPRINTF(SWM_D_QUIRK, "compiled: %s\n", str);
@@ -12578,8 +12832,8 @@ quirk_insert(const char *class, const char *instance, const char *name,
 	if (asprintf(&str, "^%s$", name) == -1)
 		err(1, "quirk_insert: asprintf");
 	if (regcomp(&qp->regex_name, str, REG_EXTENDED | REG_NOSUB)) {
-		add_startup_exception("regex failed to compile quirk 'name' "
-		    "field: %s", name);
+		add_startup_exception("invalid regex for 'name' field: %s",
+		    class);
 		failed = true;
 	}
 	DNPRINTF(SWM_D_QUIRK, "compiled: %s\n", str);
@@ -13517,12 +13771,12 @@ int
 setautorun(uint8_t asop, const char *selector, const char *value, int flags,
     char **emsg)
 {
-	int			ws_id;
-	char			*ap, *sp, *str;
 	union arg		a;
-	int			argc = 0, n;
-	pid_t			pid;
 	struct pid_e		*p;
+	int			ws_id, argc = 0, n;
+	unsigned int		sf;
+	pid_t			pid;
+	char			*ap, *sp, *str;
 
 	/* suppress unused warnings since vars are needed */
 	(void)selector;
@@ -13572,25 +13826,31 @@ setautorun(uint8_t asop, const char *selector, const char *value, int flags,
 		err(1, "setautorun: realloc");
 	a.argv[argc] = NULL;
 
+	sf = spawn_flags | SWM_SPAWN_CLOSE_FD;
+	if (!(sf & SWM_SPAWN_NOSPAWNWS))
+		sf |= SWM_SPAWN_WS | SWM_SPAWN_PID;
+
 	if ((pid = fork()) == 0) {
-		spawn(ws_id, &a, true);
+		spawn(ws_id, &a, sf);
 		/* NOTREACHED */
 		_exit(1);
 	}
 	free(a.argv);
 	free(str);
 
-	/* parent */
-	p = find_pid(pid);
-	if (p == NULL) {
-		p = calloc(1, sizeof *p);
-		if (p == NULL)
-			return (1);
-		TAILQ_INSERT_TAIL(&pidlist, p, entry);
-	}
+	if (sf & SWM_SPAWN_PID) {
+		/* parent */
+		p = find_pid(pid);
+		if (p == NULL) {
+			p = calloc(1, sizeof *p);
+			if (p == NULL)
+				return (1);
+			TAILQ_INSERT_TAIL(&pidlist, p, entry);
+		}
 
-	p->pid = pid;
-	p->ws = ws_id;
+		p->pid = pid;
+		p->ws = ws_id;
+	}
 
 	return (0);
 }
@@ -13692,9 +13952,9 @@ setlayout(uint8_t asop, const char *selector, const char *value, int flags,
 
 /* config options */
 struct config_option {
-	char			*name;
-	int			(*func)(uint8_t, const char*, const char*, int, char **);
-	int			flags;
+	char	*name;
+	int	(*func)(uint8_t, const char *, const char *, int, char **);
+	int	flags;
 };
 struct config_option configopt[] = {
 	{ "autorun",			setautorun,	0 },
@@ -13736,6 +13996,10 @@ struct config_option configopt[] = {
 	{ "color_unfocus_free",		setconfcolor,	SWM_S_COLOR_UNFOCUS_FREE },
 	{ "color_unfocus_maximized",	setconfcolor,	SWM_S_COLOR_UNFOCUS_MAXIMIZED },
 	{ "color_unfocus_maximized_free",setconfcolor,	SWM_S_COLOR_UNFOCUS_MAXIMIZED_FREE },
+	{ "color_urgent",		setconfcolor,	SWM_S_COLOR_URGENT },
+	{ "color_urgent_free",		setconfcolor,	SWM_S_COLOR_URGENT_FREE },
+	{ "color_urgent_maximized",	setconfcolor,	SWM_S_COLOR_URGENT_MAXIMIZED },
+	{ "color_urgent_maximized_free",setconfcolor,	SWM_S_COLOR_URGENT_MAXIMIZED_FREE },
 	{ "cycle_empty",		setconfvalue,	SWM_S_CYCLE_EMPTY },
 	{ "cycle_visible",		setconfvalue,	SWM_S_CYCLE_VISIBLE },
 	{ "dialog_ratio",		setconfvalue,	SWM_S_DIALOG_RATIO },
@@ -13763,6 +14027,7 @@ struct config_option configopt[] = {
 	{ "screenshot_app",		NULL,		0 },	/* dummy */
 	{ "screenshot_enabled",		NULL,		0 },	/* dummy */
 	{ "snap_range",			setconfvalue,	SWM_S_SNAP_RANGE },
+	{ "spawn_flags",		setconfspawnflags,0 },
 	{ "spawn_position",		setconfvalue,	SWM_S_SPAWN_ORDER },
 	{ "spawn_term",			setconfvalue,	SWM_S_SPAWN_TERM },
 	{ "stack_enabled",		setconfvalue,	SWM_S_STACK_ENABLED },
@@ -14838,8 +15103,7 @@ keypress(xcb_key_press_event_t *e)
 		goto out;
 
 	if (bp->action == FN_SPAWN_CUSTOM)
-		spawn_custom(get_current_region(find_screen(e->root)),
-		    &ap->args, bp->spawn_name);
+		spawn_custom(find_screen(e->root), &ap->args, bp->spawn_name);
 	else if (ap->func)
 		ap->func(find_screen(e->root), bp, &ap->args);
 
@@ -14941,8 +15205,7 @@ buttonpress(xcb_button_press_event_t *e)
 		goto out;
 
 	if (bp->action == FN_SPAWN_CUSTOM)
-		spawn_custom(get_current_region(find_screen(e->root)),
-		    &ap->args, bp->spawn_name);
+		spawn_custom(find_screen(e->root), &ap->args, bp->spawn_name);
 	else if (ap->func)
 		ap->func(find_screen(e->root), bp, &ap->args);
 
@@ -15798,6 +16061,8 @@ propertynotify(xcb_property_notify_event_t *e)
 			bar_draw(win->ws->r->bar);
 	} else if (e->atom == XCB_ATOM_WM_HINTS) {
 		get_wm_hints(win);
+		draw_frame(win);
+		update_bars(win->s);
 	} else if (e->atom == XCB_ATOM_WM_NORMAL_HINTS) {
 		get_wm_normal_hints(win);
 		win->gravity = win_gravity(win);
@@ -16031,6 +16296,7 @@ clientmessage(xcb_client_message_event_t *e)
 			}
 		} else {
 			set_attention(win);
+			draw_frame(win);
 			update_bars(s);
 		}
 	} else if (e->type == ewmh[_NET_CLOSE_WINDOW].atom) {
