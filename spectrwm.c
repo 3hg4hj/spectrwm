@@ -245,6 +245,7 @@ uint32_t		swm_debug = 0
 #define EWMH_WINDOW_TYPE_COMBO		(1 << 11)
 #define EWMH_WINDOW_TYPE_DND		(1 << 12)
 #define EWMH_WINDOW_TYPE_NORMAL		(1 << 13)
+#define EWMH_WINDOW_TYPE_COUNT		(14)
 
 #define WINDESKTOP(w)		((w)->type & EWMH_WINDOW_TYPE_DESKTOP)
 #define WINDOCK(w)		((w)->type & EWMH_WINDOW_TYPE_DOCK)
@@ -542,7 +543,7 @@ XFontSetExtents	*bar_fs_extents;
 char		**bar_fontnames = NULL;
 int		 num_xftfonts = 0;
 char		*bar_fontname_pua = NULL;
-int		font_pua_index;
+int		 font_pua_index = 0;
 bool		 bar_font_legacy = true;
 char		*bar_fonts = NULL;
 XftColor	search_font_color;
@@ -567,7 +568,7 @@ char		*stack_mark_vertical = NULL;
 char		*stack_mark_vertical_flip = NULL;
 char		*stack_mark_horizontal = NULL;
 char		*stack_mark_horizontal_flip = NULL;
-size_t		 stack_mark_maxlen = 0;
+size_t		 stack_mark_maxlen = 1;	/* Start with null byte. */
 
 #define ROTATION_DEFAULT	(XCB_RANDR_ROTATION_ROTATE_0)
 #define ROTATION_VERT		(XCB_RANDR_ROTATION_ROTATE_0 |		       \
@@ -759,7 +760,7 @@ int			 layout_order_count = 0;
 #define SWM_H_SLICE		(32)
 #define SWM_V_SLICE		(32)
 
-#define SWM_FANCY_MAXLEN	8		/* Includes null byte. */
+#define SWM_FANCY_MAXLEN	(8)		/* Includes null byte. */
 
 /* define work spaces */
 struct workspace {
@@ -948,6 +949,7 @@ struct quirk {
 	regex_t			regex_class;
 	regex_t			regex_instance;
 	regex_t			regex_name;
+	uint32_t		type;
 	uint8_t			mode;	 /* Assignment mode. */
 	uint32_t		quirk;
 	int			ws;	 /* Initial workspace. */
@@ -964,6 +966,9 @@ struct quirk {
 #define SWM_Q_IGNORESPAWNWS	(1 << 10)/* Ignore _SWM_WS when managing win. */
 #define SWM_Q_NOFOCUSCYCLE	(1 << 11)/* Remove from normal focus cycle. */
 #define SWM_Q_MINIMALBORDER	(1 << 12)/* No border when floating/unfocused.*/
+#define SWM_Q_MAXIMIZE		(1 << 13)/* Maximize window when mapped. */
+#define SWM_Q_BELOW		(1 << 14)/* Put window below when mapped. */
+#define SWM_Q_ICONIFY		(1 << 15)/* Put window below when mapped. */
 };
 TAILQ_HEAD(quirk_list, quirk) quirks = TAILQ_HEAD_INITIALIZER(quirks);
 
@@ -1080,6 +1085,30 @@ struct ewmh_hint {
     {"_NET_WM_WINDOW_TYPE_NORMAL", XCB_ATOM_NONE},
     {"_NET_WORKAREA", XCB_ATOM_NONE},
     {"_SWM_WM_STATE_MANUAL", XCB_ATOM_NONE},
+};
+
+struct ewmh_window_type {
+	char		*name;
+	int		id;
+	uint32_t	flag;
+} ewmh_window_types[EWMH_WINDOW_TYPE_COUNT] = {
+	{"DESKTOP", _NET_WM_WINDOW_TYPE_DESKTOP, EWMH_WINDOW_TYPE_DESKTOP},
+	{"DOCK", _NET_WM_WINDOW_TYPE_DOCK, EWMH_WINDOW_TYPE_DOCK},
+	{"TOOLBAR", _NET_WM_WINDOW_TYPE_TOOLBAR, EWMH_WINDOW_TYPE_TOOLBAR},
+	{"MENU", _NET_WM_WINDOW_TYPE_MENU, EWMH_WINDOW_TYPE_MENU},
+	{"UTILITY", _NET_WM_WINDOW_TYPE_UTILITY, EWMH_WINDOW_TYPE_UTILITY},
+	{"SPLASH", _NET_WM_WINDOW_TYPE_SPLASH, EWMH_WINDOW_TYPE_SPLASH},
+	{"DIALOG", _NET_WM_WINDOW_TYPE_DIALOG, EWMH_WINDOW_TYPE_DIALOG},
+	{"DROPDOWN_MENU", _NET_WM_WINDOW_TYPE_DROPDOWN_MENU,
+	    EWMH_WINDOW_TYPE_DROPDOWN_MENU},
+	{"POPUP_MENU", _NET_WM_WINDOW_TYPE_POPUP_MENU,
+	    EWMH_WINDOW_TYPE_POPUP_MENU},
+	{"TOOLTIP", _NET_WM_WINDOW_TYPE_TOOLTIP, EWMH_WINDOW_TYPE_TOOLTIP},
+	{"NOTIFICATION", _NET_WM_WINDOW_TYPE_NOTIFICATION,
+	    EWMH_WINDOW_TYPE_NOTIFICATION},
+	{"COMBO", _NET_WM_WINDOW_TYPE_COMBO, EWMH_WINDOW_TYPE_COMBO},
+	{"DND", _NET_WM_WINDOW_TYPE_DND, EWMH_WINDOW_TYPE_DND},
+	{"NORMAL", _NET_WM_WINDOW_TYPE_NORMAL, EWMH_WINDOW_TYPE_NORMAL},
 };
 
 /* EWMH source type */
@@ -1593,6 +1622,7 @@ int	 parse_color(struct swm_screen *, const char *, struct swm_color *);
 int	 parse_rgb(const char *, uint16_t *, uint16_t *, uint16_t *);
 int	 parse_rgba(const char *, uint16_t *, uint16_t *, uint16_t *,
 	     uint16_t *);
+static int	 parse_window_type(const char *, uint32_t *, char **);
 static int	 parse_spawn_flags(const char *, uint32_t *, char **);
 int	 parse_workspace_indicator(const char *, uint32_t *, char **);
 int	 parsebinding(const char *, uint16_t *, enum binding_type *, uint32_t *,
@@ -1610,11 +1640,11 @@ void	 priorws(struct swm_screen *, struct binding *, union arg *);
 void	 propertynotify(xcb_property_notify_event_t *);
 void	 put_back_event(xcb_generic_event_t *);
 void	 quirk_free(struct quirk *);
-void	 quirk_insert(const char *, const char *, const char *, uint8_t,
-	     uint32_t, int);
+void	 quirk_insert(const char *, const char *, const char *, uint32_t,
+	     uint8_t, uint32_t, int);
 void	 quirk_remove(struct quirk *);
 void	 quirk_replace(struct quirk *, const char *, const char *, const char *,
-	     uint8_t, uint32_t, int);
+	     uint32_t, uint8_t, uint32_t, int);
 void	 quit(struct swm_screen *, struct binding *, union arg *);
 void	 raise_focus(struct swm_screen *, struct binding *, union arg *);
 void	 raise_toggle(struct swm_screen *, struct binding *, union arg *);
@@ -1623,6 +1653,7 @@ void	 rawbuttonpress(xcb_input_raw_button_press_event_t *);
 #endif
 void	 refresh_stack(struct swm_screen *);
 int	 refresh_strut(struct swm_screen *);
+static int	 regcompopt(regex_t *, const char *);
 struct swm_region	*region_under(struct swm_screen *, int, int);
 void	 regionize(struct ws_win *, int, int);
 int	 reparent_window(struct ws_win *);
@@ -1675,8 +1706,8 @@ int	 setconfvalue(uint8_t, const char *, const char *, int, char **);
 int	 setkeymapping(uint8_t, const char *, const char *, int, char **);
 int	 setlayout(uint8_t, const char *, const char *, int, char **);
 static int	 setlayoutorder(const char *, char **);
-void	 setquirk(const char *, const char *, const char *, uint8_t, uint32_t,
-	     int);
+static void	 setquirk(const char *, const char *, const char *, uint32_t,
+		     uint8_t, uint32_t, int);
 static void	 setscreencolor(struct swm_screen *, const char *, int, int);
 static void	 setspawn(const char *, const char *, unsigned int);
 void	 setup_btnbindings(void);
@@ -1984,7 +2015,8 @@ workspace_insert(struct swm_screen *s, int id)
 	ws->stacker_len = stack_mark_maxlen;
 	ws->stacker = calloc(ws->stacker_len, sizeof(char));
 	if (ws->stacker == NULL)
-		err(1, "setup_marks: calloc");
+		err(1, "workspace_insert: stacker calloc");
+	ws->stacker[0] = '\0';
 
 	for (i = 0; i < LENGTH(layouts); i++)
 		if (layouts[i].l_config != NULL)
@@ -2470,7 +2502,7 @@ ewmh_get_window_type(struct ws_win *win)
 	xcb_get_property_reply_t	*r;
 	xcb_get_property_cookie_t	c;
 	xcb_atom_t			*type;
-	int				i, n;
+	int				i, j, n;
 
 	c = xcb_get_property(conn, 0, win->id,
 	    ewmh[_NET_WM_WINDOW_TYPE].atom, XCB_ATOM_ATOM, 0, UINT32_MAX);
@@ -2482,74 +2514,26 @@ ewmh_get_window_type(struct ws_win *win)
 	n = xcb_get_property_value_length(r) / sizeof(xcb_atom_t);
 
 	win->type = 0;
-	for (i = 0; i < n; i++) {
-		if (type[i] == ewmh[_NET_WM_WINDOW_TYPE_DESKTOP].atom)
-			win->type |= EWMH_WINDOW_TYPE_DESKTOP;
-		else if (type[i] == ewmh[_NET_WM_WINDOW_TYPE_DOCK].atom)
-			win->type |= EWMH_WINDOW_TYPE_DOCK;
-		else if (type[i] == ewmh[_NET_WM_WINDOW_TYPE_TOOLBAR].atom)
-			win->type |= EWMH_WINDOW_TYPE_TOOLBAR;
-		else if (type[i] == ewmh[_NET_WM_WINDOW_TYPE_MENU].atom)
-			win->type |= EWMH_WINDOW_TYPE_MENU;
-		else if (type[i] == ewmh[_NET_WM_WINDOW_TYPE_UTILITY].atom)
-			win->type |= EWMH_WINDOW_TYPE_UTILITY;
-		else if (type[i] == ewmh[_NET_WM_WINDOW_TYPE_SPLASH].atom)
-			win->type |= EWMH_WINDOW_TYPE_SPLASH;
-		else if (type[i] == ewmh[_NET_WM_WINDOW_TYPE_DIALOG].atom)
-			win->type |= EWMH_WINDOW_TYPE_DIALOG;
-		else if (type[i] == ewmh[_NET_WM_WINDOW_TYPE_DROPDOWN_MENU].atom)
-			win->type |= EWMH_WINDOW_TYPE_DROPDOWN_MENU;
-		else if (type[i] == ewmh[_NET_WM_WINDOW_TYPE_POPUP_MENU].atom)
-			win->type |= EWMH_WINDOW_TYPE_POPUP_MENU;
-		else if (type[i] == ewmh[_NET_WM_WINDOW_TYPE_TOOLTIP].atom)
-			win->type |= EWMH_WINDOW_TYPE_TOOLTIP;
-		else if (type[i] == ewmh[_NET_WM_WINDOW_TYPE_NOTIFICATION].atom)
-			win->type |= EWMH_WINDOW_TYPE_NOTIFICATION;
-		else if (type[i] == ewmh[_NET_WM_WINDOW_TYPE_COMBO].atom)
-			win->type |= EWMH_WINDOW_TYPE_COMBO;
-		else if (type[i] == ewmh[_NET_WM_WINDOW_TYPE_DND].atom)
-			win->type |= EWMH_WINDOW_TYPE_DND;
-		else if (type[i] == ewmh[_NET_WM_WINDOW_TYPE_NORMAL].atom)
-			win->type |= EWMH_WINDOW_TYPE_NORMAL;
-	}
+	for (i = 0; i < n; i++)
+		for (j = 0; j < EWMH_WINDOW_TYPE_COUNT; j++)
+			if (type[i] == ewmh[ewmh_window_types[j].id].atom)
+				win->type |= ewmh_window_types[j].flag;
 	free(r);
 }
 
 void
 ewmh_print_window_type(uint32_t type)
 {
+	int		i;
+
 	if (type == 0) {
 		DPRINTF("None ");
 		return;
 	}
-	if (type & EWMH_WINDOW_TYPE_DESKTOP)
-		DPRINTF("DESKTOP ");
-	if (type & EWMH_WINDOW_TYPE_DOCK)
-		DPRINTF("DOCK ");
-	if (type & EWMH_WINDOW_TYPE_TOOLBAR)
-		DPRINTF("TOOLBAR ");
-	if (type & EWMH_WINDOW_TYPE_MENU)
-		DPRINTF("MENU ");
-	if (type & EWMH_WINDOW_TYPE_UTILITY)
-		DPRINTF("UTILITY ");
-	if (type & EWMH_WINDOW_TYPE_SPLASH)
-		DPRINTF("SPLASH ");
-	if (type & EWMH_WINDOW_TYPE_DIALOG)
-		DPRINTF("DIALOG ");
-	if (type & EWMH_WINDOW_TYPE_DROPDOWN_MENU)
-		DPRINTF("DROPDOWN_MENU ");
-	if (type & EWMH_WINDOW_TYPE_POPUP_MENU)
-		DPRINTF("POPUP_MENU ");
-	if (type & EWMH_WINDOW_TYPE_TOOLTIP)
-		DPRINTF("TOOLTIP ");
-	if (type & EWMH_WINDOW_TYPE_NOTIFICATION)
-		DPRINTF("NOTIFICATION ");
-	if (type & EWMH_WINDOW_TYPE_COMBO)
-		DPRINTF("COMBO ");
-	if (type & EWMH_WINDOW_TYPE_DND)
-		DPRINTF("DND ");
-	if (type & EWMH_WINDOW_TYPE_NORMAL)
-		DPRINTF("NORMAL ");
+
+	for (i = 0; i < EWMH_WINDOW_TYPE_COUNT; i++)
+		if (type & ewmh_window_types[i].flag)
+			DPRINTF("%s ", ewmh_window_types[i].name);
 }
 
 void
@@ -3358,6 +3342,7 @@ parse_color(struct swm_screen *s, const char *name, struct swm_color *color)
 			bb = lcr->visual_blue;
 			aa = 0xff;
 			valid = true;
+			free(lcr);
 		} else
 			warnx("color '%s' not found", name);
 	}
@@ -4692,6 +4677,9 @@ get_character_font(struct swm_screen *s, FcChar32 c, int pref)
 {
 	int			i;
 
+	if (bar_font_legacy)
+		return (0);
+
 	/* Try special font for PUA codepoints. */
 	if (font_pua_index && s->bar_xftfonts[font_pua_index] &&
 	    ((0xe000 <= c && c <= 0xf8ff) || (0xf0000 <= c && c <= 0xffffd) ||
@@ -5469,6 +5457,7 @@ setup_marks(void)
 			free(ws->stacker);
 			if ((ws->stacker = calloc(mlen, sizeof(char))) == NULL)
 				err(1, "setup_marks: calloc");
+			ws->stacker[0] = '\0';
 			ws->stacker_len = mlen;
 		}
 }
@@ -7573,7 +7562,7 @@ focus(struct swm_screen *s, struct binding *bp, union arg *args)
 		head = cur_focus;
 		d = cws ? cws->idx : ws->idx;
 
-		for (i = 0; i <= workspace_limit; ++i) {
+		for (i = 0; i <= workspace_limit + 1; ++i) {
 			if (head == NULL) {
 				wws = workspace_lookup(s,
 				    (d + i + 1) % (workspace_limit + 1) - 1);
@@ -8109,10 +8098,12 @@ stack_master(struct workspace *ws, struct swm_geometry *g, int rot, bool flip)
 				cell.x += r_g.w - msize;
 			s = stacks;
 		} else {
-			msize = - 2 * border_width;
+			msize = -2 * border_width;
 			colno = split = winno / stacks;
 			cell.w = ((r_g.w - (stacks * 2 * border_width) +
 			    2 * border_width) / stacks);
+			if (flip)
+				cell.x += r_g.w - cell.w;
 			s = stacks - 1;
 		}
 
@@ -8153,8 +8144,7 @@ stack_master(struct workspace *ws, struct swm_geometry *g, int rot, bool flip)
 				    stacks;
 
 			if (flip)
-				cell.x -= cell.w + 2 * border_width +
-				    tile_gap;
+				cell.x -= cell.w + 2 * border_width + tile_gap;
 			s--;
 			j = 0;
 		}
@@ -9345,13 +9335,11 @@ ewmh_update_desktop_names(struct swm_screen *s)
 
 	p = name_list;
 	for (i = 0; i < workspace_limit; ++i) {
-		if ((ws = workspace_lookup(s, i))) {
-			if (ws->name) {
-				len = strlen(ws->name);
-				memcpy(p, ws->name, len);
-			} else
-				len = 0;
-		}
+		if ((ws = workspace_lookup(s, i)) && ws->name) {
+			len = strlen(ws->name);
+			memcpy(p, ws->name, len);
+		} else
+			len = 0;
 
 		p += len + 1;
 		tot += len + 1;
@@ -9390,10 +9378,9 @@ ewmh_get_desktop_names(struct swm_screen *s)
 
 	for (i = 0, k = 0; i < n; ++i) {
 		if (*(names + i) != '\0') {
-			if ((ws = get_workspace(s, k))) {
+			if ((ws = get_workspace(s, k)))
 				ws->name = strdup(names + i);
-				i += strlen(names + i);
-			}
+			i += strlen(names + i);
 		}
 		++k;
 	}
@@ -11495,6 +11482,19 @@ asopcheck(uint8_t asop, uint8_t allowed, char **emsg)
 	return (0);
 }
 
+static int
+regcompopt(regex_t *preg, const char *regex) {
+	int	ret;
+	char	*str;
+
+	if (asprintf(&str, "^%s$", regex) == -1)
+		err(1, "regcompopt: asprintf");
+	ret = regcomp(preg, regex, REG_EXTENDED | REG_NOSUB);
+	free(str);
+
+	return (ret);
+}
+
 static char *
 cleanopt(char *str)
 {
@@ -11571,7 +11571,6 @@ setconfspawnflags(uint8_t asop, const char *selector, const char *value,
 {
 	struct spawn_prog	*sp = NULL;
 	unsigned int		sflags;
-	char			*name;
 	regex_t			regex_name;
 	int			count;
 
@@ -11605,15 +11604,10 @@ setconfspawnflags(uint8_t asop, const char *selector, const char *value,
 	}
 
 	/* Otherwise, search for spawn entries and set their spawn flags. */
-	if (asprintf(&name, "^%s$", selector) == -1)
-		err(1, "setconfspawnflags: asprintf");
-
-	if (regcomp(&regex_name, name, REG_EXTENDED | REG_NOSUB)) {
+	if (regcompopt(&regex_name, selector)) {
 		ALLOCSTR(emsg, "invalid regex: %s", selector);
-		free(name);
 		return (1);
 	}
-	free(name);
 
 	if (parse_spawn_flags(value, &sflags, emsg))
 		return (1);
@@ -11639,6 +11633,7 @@ setconfspawnflags(uint8_t asop, const char *selector, const char *value,
 			count++;
 		}
 	}
+	regfree(&regex_name);
 
 	if (count == 0) {
 		ALLOCSTR(emsg, "program entry not found: %s", selector);
@@ -12726,6 +12721,9 @@ const char *quirkname[] = {
 	"IGNORESPAWNWS",
 	"NOFOCUSCYCLE",
 	"MINIMALBORDER",
+	"MAXIMIZE",
+	"BELOW",
+	"ICONIFY",
 };
 
 /* SWM_Q_DELIM: retain '|' for back compat for now (2009-08-11) */
@@ -12790,14 +12788,14 @@ parsequirks(const char *qstr, uint32_t *quirk, int *ws, char **emsg)
 
 void
 quirk_insert(const char *class, const char *instance, const char *name,
-    uint8_t mode, uint32_t quirk, int ws)
+    uint32_t type, uint8_t mode, uint32_t quirk, int ws)
 {
 	struct quirk		*qp;
-	char			*str;
-	bool			failed = false;
+	int			retc, reti, retn;
 
-	DNPRINTF(SWM_D_QUIRK, "class: %s, instance: %s, name: %s, mode:%u, "
-	    "value: %u, ws: %d\n", class, instance, name, mode, quirk, ws);
+	DNPRINTF(SWM_D_QUIRK, "class: %s, instance: %s, name: %s, type: %u, "
+	    "mode:%u, value: %u, ws: %d\n", class, instance, name, type, mode,
+	    quirk, ws);
 
 	if ((qp = malloc(sizeof *qp)) == NULL)
 		err(1, "quirk_insert: malloc");
@@ -12809,40 +12807,30 @@ quirk_insert(const char *class, const char *instance, const char *name,
 	if ((qp->name = strdup(name)) == NULL)
 		err(1, "quirk_insert: strdup");
 
-	if (asprintf(&str, "^%s$", class) == -1)
-		err(1, "quirk_insert: asprintf");
-	if (regcomp(&qp->regex_class, str, REG_EXTENDED | REG_NOSUB)) {
+	if ((retc = regcompopt(&qp->regex_class, class)))
 		add_startup_exception("invalid regex for 'class' field: %s",
 		    class);
-		failed = true;
-	}
-	DNPRINTF(SWM_D_QUIRK, "compiled: %s\n", str);
-	free(str);
-
-	if (asprintf(&str, "^%s$", instance) == -1)
-		err(1, "quirk_insert: asprintf");
-	if (regcomp(&qp->regex_instance, str, REG_EXTENDED | REG_NOSUB)) {
+	if ((reti = regcompopt(&qp->regex_instance, instance)))
 		add_startup_exception("invalid regex for 'instance' field: %s",
-		    class);
-		failed = true;
-	}
-	DNPRINTF(SWM_D_QUIRK, "compiled: %s\n", str);
-	free(str);
-
-	if (asprintf(&str, "^%s$", name) == -1)
-		err(1, "quirk_insert: asprintf");
-	if (regcomp(&qp->regex_name, str, REG_EXTENDED | REG_NOSUB)) {
+		    instance);
+	if ((retn = regcompopt(&qp->regex_name, name)))
 		add_startup_exception("invalid regex for 'name' field: %s",
-		    class);
-		failed = true;
-	}
-	DNPRINTF(SWM_D_QUIRK, "compiled: %s\n", str);
-	free(str);
+		    name);
 
-	if (failed) {
+	if (retc || reti || retn) {
 		DNPRINTF(SWM_D_QUIRK, "regex error\n");
-		quirk_free(qp);
+		if (retc == 0)
+			regfree(&qp->regex_class);
+		if (reti == 0)
+			regfree(&qp->regex_instance);
+		if (retn == 0)
+			regfree(&qp->regex_name);
+		free(qp->class);
+		free(qp->instance);
+		free(qp->name);
+		free(qp);
 	} else {
+		qp->type = type;
 		qp->quirk = quirk;
 		qp->mode = mode;
 		qp->ws = ws;
@@ -12887,37 +12875,38 @@ clear_quirks(void)
 
 void
 quirk_replace(struct quirk *qp, const char *class, const char *instance,
-    const char *name, uint8_t mode, uint32_t quirk, int ws)
+    const char *name, uint32_t type, uint8_t mode, uint32_t quirk, int ws)
 {
-	DNPRINTF(SWM_D_QUIRK, "%s:%s:%s %u [%u], ws: %d\n", qp->class,
-	    qp->instance, qp->name, qp->mode, qp->quirk, qp->ws);
+	DNPRINTF(SWM_D_QUIRK, "%s:%s:%s:%u %u [%u], ws: %d\n", qp->class,
+	    qp->instance, qp->name, qp->type, qp->mode, qp->quirk, qp->ws);
 
 	quirk_remove(qp);
-	quirk_insert(class, instance, name, mode, quirk, ws);
+	quirk_insert(class, instance, name, type, mode, quirk, ws);
 
 	DNPRINTF(SWM_D_QUIRK, "leave\n");
 }
 
-void
+static void
 setquirk(const char *class, const char *instance, const char *name,
-    uint8_t mode, uint32_t quirk, int ws)
+    uint32_t type, uint8_t mode, uint32_t quirk, int ws)
 {
 	struct quirk		*qp;
 
-	DNPRINTF(SWM_D_QUIRK, "%s:%s:%s %u [%u] ws: %d\n", class, instance,
-	    name, mode, quirk, ws);
+	DNPRINTF(SWM_D_QUIRK, "%s:%s:%s:%u %u [%u] ws: %d\n", class, instance,
+	    name, type, mode, quirk, ws);
 
 #ifndef __clang_analyzer__ /* Suppress false warnings. */
 	/* Remove/replace existing quirk. */
 	TAILQ_FOREACH(qp, &quirks, entry) {
 		if (strcmp(qp->class, class) == 0 &&
 		    strcmp(qp->instance, instance) == 0 &&
-		    strcmp(qp->name, name) == 0) {
+		    strcmp(qp->name, name) == 0 &&
+		    qp->type == type) {
 			if (quirk == 0 && ws == -2)
 				quirk_remove(qp);
 			else
-				quirk_replace(qp, class, instance, name, mode,
-				    quirk, ws);
+				quirk_replace(qp, class, instance, name, type,
+				    mode, quirk, ws);
 			goto out;
 		}
 	}
@@ -12925,7 +12914,7 @@ setquirk(const char *class, const char *instance, const char *name,
 
 	/* Only insert if quirk is not NONE or forced ws is set. */
 	if (quirk || ws != -2)
-		quirk_insert(class, instance, name, mode, quirk, ws);
+		quirk_insert(class, instance, name, type, mode, quirk, ws);
 out:
 	DNPRINTF(SWM_D_QUIRK, "leave\n");
 }
@@ -12946,14 +12935,52 @@ unescape_selector(char *str)
 	*cp = '\0';
 }
 
+static int
+parse_window_type(const char *str, uint32_t *flags, char **emsg)
+{
+	char			*tmp, *cp, *name;
+	int			i;
+
+	if (str == NULL || flags == NULL)
+		return (1);
+
+	if ((cp = tmp = strdup(str)) == NULL)
+		err(1, "parse_window_type: strdup");
+
+	*flags = 0;
+	while ((name = strsep(&cp, SWM_CONF_DELIMLIST)) != NULL) {
+		name = cleanopt(name);
+		if (*name == '\0')
+			continue;
+
+		for (i = 0; i < LENGTH(ewmh_window_types); i++) {
+			if (strcasecmp(name, ewmh_window_types[i].name) == 0) {
+				DNPRINTF(SWM_D_CONF, "type: [%s]\n", name);
+				*flags |= ewmh_window_types[i].flag;
+				break;
+			}
+		}
+		if (i >= LENGTH(ewmh_window_types)) {
+			ALLOCSTR(emsg, "invalid window type: %s", name);
+			DNPRINTF(SWM_D_CONF, "invalid window type: [%s]\n",
+			    name);
+			free(tmp);
+			return (1);
+		}
+	}
+
+	free(tmp);
+	return (0);
+}
+
 int
 setconfquirk(uint8_t asop, const char *selector, const char *value, int flags,
     char **emsg)
 {
 	char			*str, *cp, *class;
-	char			*instance = NULL, *name = NULL;
+	char			*instance = NULL, *name = NULL, *type = NULL;
 	int			retval, count = 0, ws = -2;
-	uint32_t		qrks;
+	uint32_t		qrks, wintype = 0;
 
 	/* Suppress warning. */
 	(void)flags;
@@ -12982,7 +13009,10 @@ setconfquirk(uint8_t asop, const char *selector, const char *value, int flags,
 		}
 	}
 
+	/* Class */
 	unescape_selector(class);
+
+	/* Instance */
 	if (count) {
 		instance = class + strlen(class) + 1;
 		unescape_selector(instance);
@@ -12990,6 +13020,7 @@ setconfquirk(uint8_t asop, const char *selector, const char *value, int flags,
 		instance = ".*";
 	}
 
+	/* Name */
 	if (count > 1) {
 		name = instance + strlen(instance) + 1;
 		unescape_selector(name);
@@ -12997,11 +13028,19 @@ setconfquirk(uint8_t asop, const char *selector, const char *value, int flags,
 		name = ".*";
 	}
 
-	DNPRINTF(SWM_D_CONF, "class: %s, instance: %s, name: %s\n", class,
-	    instance, name);
+	/* Type */
+	if (count > 2) {
+		type = name + strlen(name) + 1;
+		unescape_selector(type);
+		if (parse_window_type(type, &wintype, emsg))
+			return (1);
+	}
+
+	DNPRINTF(SWM_D_CONF, "class: %s, instance: %s, name: %s, type: %u\n",
+	    class, instance, name, wintype);
 
 	if ((retval = parsequirks(value, &qrks, &ws, emsg)) == 0)
-		setquirk(class, instance, name, asop, qrks, ws);
+		setquirk(class, instance, name, wintype, asop, qrks, ws);
 
 	free(str);
 	return (retval);
@@ -13010,32 +13049,40 @@ setconfquirk(uint8_t asop, const char *selector, const char *value, int flags,
 void
 setup_quirks(void)
 {
-	setquirk("MPlayer",		"xv",		".*", SWM_ASOP_BASIC,
+	setquirk(".*", ".*", ".*", EWMH_WINDOW_TYPE_SPLASH |
+	    EWMH_WINDOW_TYPE_DIALOG, SWM_ASOP_BASIC, SWM_Q_FLOAT, -2);
+	setquirk(".*", ".*", ".*", EWMH_WINDOW_TYPE_TOOLBAR |
+	    EWMH_WINDOW_TYPE_UTILITY, SWM_ASOP_BASIC, SWM_Q_FLOAT |
+	    SWM_Q_ANYWHERE, -2);
+	setquirk(".*", ".*", ".*", EWMH_WINDOW_TYPE_NOTIFICATION,
+	    SWM_ASOP_BASIC, SWM_Q_FLOAT | SWM_Q_ANYWHERE | SWM_Q_MINIMALBORDER |
+	    SWM_Q_NOFOCUSONMAP, -2);
+	setquirk("MPlayer", "xv", ".*", 0, SWM_ASOP_BASIC,
 	    SWM_Q_FLOAT | SWM_Q_FULLSCREEN | SWM_Q_FOCUSPREV, -2);
-	setquirk("OpenOffice.org 3.2",	"VCLSalFrame",	".*", SWM_ASOP_BASIC,
-	    SWM_Q_FLOAT, -2);
-	setquirk("Firefox-bin",		"firefox-bin",	".*", SWM_ASOP_BASIC,
-	    SWM_Q_TRANSSZ, -2);
-	setquirk("Firefox",		"Dialog",	".*", SWM_ASOP_BASIC,
-	    SWM_Q_FLOAT, -2);
-	setquirk("Gimp",		"gimp",		".*", SWM_ASOP_BASIC,
-	    SWM_Q_FLOAT | SWM_Q_ANYWHERE, -2);
-	setquirk("XTerm",		"xterm",	".*", SWM_ASOP_BASIC,
-	    SWM_Q_XTERM_FONTADJ, -2);
-	setquirk("xine",		"Xine Window",	".*", SWM_ASOP_BASIC,
-	    SWM_Q_FLOAT | SWM_Q_ANYWHERE, -2);
-	setquirk("Xitk",		"Xitk Combo",	".*", SWM_ASOP_BASIC,
-	    SWM_Q_FLOAT | SWM_Q_ANYWHERE, -2);
-	setquirk("xine",		"xine Panel",	".*", SWM_ASOP_BASIC,
-	    SWM_Q_FLOAT | SWM_Q_ANYWHERE, -2);
-	setquirk("Xitk",		"Xine Window",	".*", SWM_ASOP_BASIC,
-	    SWM_Q_FLOAT | SWM_Q_ANYWHERE, -2);
-	setquirk("xine",		"xine Video Fullscreen Window",	".*",
+	setquirk("OpenOffice.org 3.2", "VCLSalFrame", ".*", 0,
+	    SWM_ASOP_BASIC, SWM_Q_FLOAT, -2);
+	setquirk("Firefox-bin", "firefox-bin", ".*", 0,
+	    SWM_ASOP_BASIC, SWM_Q_TRANSSZ, -2);
+	setquirk("Firefox", "Dialog", ".*", 0,
+	    SWM_ASOP_BASIC, SWM_Q_FLOAT, -2);
+	setquirk("Gimp", "gimp", ".*", 0,
+	    SWM_ASOP_BASIC, SWM_Q_FLOAT | SWM_Q_ANYWHERE, -2);
+	setquirk("XTerm", "xterm", ".*", 0,
+	    SWM_ASOP_BASIC, SWM_Q_XTERM_FONTADJ, -2);
+	setquirk("xine", "Xine Window", ".*", 0,
+	    SWM_ASOP_BASIC, SWM_Q_FLOAT | SWM_Q_ANYWHERE, -2);
+	setquirk("Xitk", "Xitk Combo", ".*", 0,
+	    SWM_ASOP_BASIC, SWM_Q_FLOAT | SWM_Q_ANYWHERE, -2);
+	setquirk("xine", "xine Panel", ".*", 0,
+	    SWM_ASOP_BASIC, SWM_Q_FLOAT | SWM_Q_ANYWHERE, -2);
+	setquirk("Xitk", "Xine Window", ".*", 0,
+	    SWM_ASOP_BASIC, SWM_Q_FLOAT | SWM_Q_ANYWHERE, -2);
+	setquirk("xine", "xine Video Fullscreen Window", ".*", 0,
 	    SWM_ASOP_BASIC, SWM_Q_FULLSCREEN | SWM_Q_FLOAT, -2);
-	setquirk("pcb",			"pcb",		".*", SWM_ASOP_BASIC,
-	    SWM_Q_FLOAT, -2);
-	setquirk("SDL_App",		"SDL_App",	".*", SWM_ASOP_BASIC,
-	    SWM_Q_FLOAT | SWM_Q_FULLSCREEN, -2);
+	setquirk("pcb", "pcb", ".*", 0,
+	    SWM_ASOP_BASIC, SWM_Q_FLOAT, -2);
+	setquirk("SDL_App", "SDL_App", ".*", 0,
+	    SWM_ASOP_BASIC, SWM_Q_FLOAT | SWM_Q_FULLSCREEN, -2);
 }
 
 /* conf file stuff */
@@ -13862,6 +13909,7 @@ setlayout(uint8_t asop, const char *selector, const char *value, int flags,
 	struct workspace	*ws;
 	int			ws_id, i, x, mg, ma, si, ar, n;
 	int			st = SWM_V_STACK, num_screens;
+	uint16_t		rot;
 	bool			f = false;
 
 	/* suppress unused warnings since vars are needed */
@@ -13915,14 +13963,15 @@ setlayout(uint8_t asop, const char *selector, const char *value, int flags,
 			continue;
 
 		/* Set layout relative to default rotation. */
-		uint16_t rot = ws->rotation;
+		rot = ws->rotation;
 		rotatews(ws, ROTATION_DEFAULT);
 		ws->cur_layout = &layouts[st];
-		ws->cur_layout->l_config(ws, SWM_ARG_ID_STACKINIT);
-
 		ws->always_raise = (ar != 0);
-		if (st == SWM_MAX_STACK)
+
+		if (ws->cur_layout->l_config == NULL || st == SWM_MAX_STACK)
 			continue;
+
+		ws->cur_layout->l_config(ws, SWM_ARG_ID_STACKINIT);
 
 		/* master grow */
 		for (x = 0; x < abs(mg); x++) {
@@ -14556,15 +14605,6 @@ manage_window(xcb_window_t id, int spawn_pos, bool mapping)
 	DNPRINTF(SWM_D_FOCUS, "input_model: %s\n",
 	    get_win_input_model_label(win));
 
-	/* Automatic quirks based on EWMH. */
-	if (WINSPLASH(win) || WINDIALOG(win))
-		win->quirks = SWM_Q_FLOAT;
-	if (WINTOOLBAR(win) || WINUTILITY(win))
-		win->quirks = SWM_Q_FLOAT | SWM_Q_ANYWHERE;
-	if (WINNOTIFY(win))
-		win->quirks = SWM_Q_FLOAT | SWM_Q_ANYWHERE |
-		    SWM_Q_MINIMALBORDER | SWM_Q_NOFOCUSONMAP;
-
 	/* Determine initial quirks. */
 	xcb_icccm_get_wm_class_reply(conn,
 	    xcb_icccm_get_wm_class(conn, win->id),
@@ -14574,17 +14614,18 @@ manage_window(xcb_window_t id, int spawn_pos, bool mapping)
 	instance = win->ch.instance_name ? win->ch.instance_name : "";
 	name = get_win_name(win->id);
 
-	DNPRINTF(SWM_D_CLASS, "class: %s, instance: %s, name: %s\n", class,
-	    instance, name);
+	DNPRINTF(SWM_D_CLASS, "class: %s, instance: %s, name: %s, type: %u\n",
+	    class, instance, name, win->type);
 
 	TAILQ_FOREACH(qp, &quirks, entry) {
 		if (regexec(&qp->regex_class, class, 0, NULL, 0) == 0 &&
 		    regexec(&qp->regex_instance, instance, 0, NULL, 0) == 0 &&
-		    regexec(&qp->regex_name, name, 0, NULL, 0) == 0) {
-			DNPRINTF(SWM_D_CLASS, "matched quirk: %s:%s:%s "
+		    regexec(&qp->regex_name, name, 0, NULL, 0) == 0 &&
+		    (qp->type == 0 || win->type & qp->type)) {
+			DNPRINTF(SWM_D_CLASS, "matched quirk: %s:%s:%s:%u "
 			    "mode: %u, mask: %#x, ws: %d\n", qp->class,
-			    qp->instance, qp->name, qp->mode, qp->quirk,
-			    qp->ws);
+			    qp->instance, qp->name, qp->type, qp->mode,
+			    qp->quirk, qp->ws);
 			switch (qp->mode) {
 			case SWM_ASOP_ADD:
 				win->quirks |= qp->quirk;
@@ -14721,10 +14762,17 @@ manage_window(xcb_window_t id, int spawn_pos, bool mapping)
 	if (win->quirks & SWM_Q_FLOAT)
 		new_flags |= EWMH_F_ABOVE;
 
+	if (win->quirks & SWM_Q_BELOW)
+		new_flags |= EWMH_F_BELOW;
+
+	if (win->quirks & SWM_Q_ICONIFY)
+		new_flags |= EWMH_F_HIDDEN;
+
 	if (win->quirks & SWM_Q_ANYWHERE)
 		new_flags |= SWM_F_MANUAL;
 
-	if (win->maxstackmax && ws_maxstack(win->ws))
+	if (win->quirks & SWM_Q_MAXIMIZE ||
+	    (win->maxstackmax && ws_maxstack(win->ws)))
 		new_flags |= EWMH_F_MAXIMIZED;
 
 	ewmh_apply_flags(win, new_flags);
@@ -17104,8 +17152,11 @@ setup_screens(void)
 			vtmpl.visualid = s->visual;
 			vlist = XGetVisualInfo(display, VisualIDMask, &vtmpl,
 			    &vcount);
-			if (vcount > 0)
-				s->xvisual = vlist[0].visual;
+			if (vlist) {
+				if (vcount > 0)
+					s->xvisual = vlist[0].visual;
+				XFree(vlist);
+			}
 
 			DNPRINTF(SWM_D_INIT, "Creating new colormap.\n");
 			s->colormap = xcb_generate_id(conn);
@@ -17493,13 +17544,17 @@ shutdown_cleanup(void)
 		/* Free region memory. */
 		while ((r = TAILQ_FIRST(&s->rl)) != NULL) {
 			TAILQ_REMOVE(&s->rl, r, entry);
+			free(r->bar->st);
 			free(r->bar);
+			free(r->st);
 			free(r);
 		}
 
 		while ((r = TAILQ_FIRST(&s->orl)) != NULL) {
 			TAILQ_REMOVE(&s->orl, r, entry);
+			free(r->bar->st);
 			free(r->bar);
+			free(r->st);
 			free(r);
 		}
 
@@ -17513,6 +17568,7 @@ shutdown_cleanup(void)
 		free(bar_fontnames);
 	}
 
+	free(bsect);
 	free(bar_fontname_pua);
 	free(bar_format);
 	free(bar_fonts);
@@ -17521,6 +17577,7 @@ shutdown_cleanup(void)
 	free(focus_mark_none);
 	free(focus_mark_normal);
 	free(focus_mark_floating);
+	free(focus_mark_free);
 	free(focus_mark_maximized);
 	free(stack_mark_floating);
 	free(stack_mark_max);
@@ -17540,10 +17597,12 @@ shutdown_cleanup(void)
 	if (bar_fs)
 		XFreeFontSet(display, bar_fs);
 
+	free(bar_argv[0]);
+
 	xcb_key_symbols_free(syms);
 	xcb_flush(conn);
 	xcb_aux_sync(conn);
-	xcb_disconnect(conn);
+	XCloseDisplay(display);
 }
 
 void
