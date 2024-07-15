@@ -727,16 +727,16 @@ struct pid_e {
 TAILQ_HEAD(pid_list, pid_e) pidlist = TAILQ_HEAD_INITIALIZER(pidlist);
 
 /* layout handlers */
-void	stack(struct swm_region *);
-void	vertical_config(struct workspace *, int);
-void	vertical_stack(struct workspace *, struct swm_geometry *);
-void	horizontal_config(struct workspace *, int);
-void	horizontal_stack(struct workspace *, struct swm_geometry *);
-void	max_config(struct workspace *, int);
-void	max_stack(struct workspace *, struct swm_geometry *);
-void	floating_stack(struct workspace *, struct swm_geometry *);
-void	plain_stacker(struct workspace *);
-void	fancy_stacker(struct workspace *);
+static void	stack(struct swm_region *);
+static void	vertical_config(struct workspace *, int);
+static void	vertical_stack(struct workspace *, struct swm_geometry *);
+static void	horizontal_config(struct workspace *, int);
+static void	horizontal_stack(struct workspace *, struct swm_geometry *);
+static void	max_config(struct workspace *, int);
+static void	max_stack(struct workspace *, struct swm_geometry *);
+static void	floating_stack(struct workspace *, struct swm_geometry *);
+static void	plain_stacker(struct workspace *);
+static void	fancy_stacker(struct workspace *);
 
 enum {
 	SWM_V_STACK,
@@ -1420,34 +1420,36 @@ struct atom_name {
 RB_HEAD(atom_name_tree, atom_name) atom_names = RB_INITIALIZER(&atom_names);
 
 /* function prototypes */
-void	 adjust_font(struct ws_win *);
+static void	 adjust_font(struct ws_win *);
 static void	 apply_struts(struct swm_screen *, struct swm_geometry *);
-int	 apply_unfocus(struct workspace *, struct ws_win *);
-char	*argsep(char **);
-int	 asopcheck(uint8_t, uint8_t, char **);
-int	 atom_name_cmp(struct atom_name *, struct atom_name *);
-void	 atom_name_insert(xcb_atom_t, char *);
-struct atom_name	*atom_name_lookup(xcb_atom_t);
-void	 atom_name_remove(struct atom_name *);
+static int	 apply_unfocus(struct workspace *, struct ws_win *);
+static char	*argsep(char **);
+static int	 asopcheck(uint8_t, uint8_t, char **);
+static int	 atom_name_cmp(struct atom_name *, struct atom_name *);
+static void	 atom_name_insert(xcb_atom_t, char *);
+static struct atom_name	*atom_name_lookup(xcb_atom_t);
+static void	 atom_name_remove(struct atom_name *);
 static void	 bar_cleanup(struct swm_region *);
-void	 bar_draw(struct swm_bar *);
-void	 bar_extra_setup(void);
-void	 bar_extra_stop(void);
-int	 bar_extra_update(void);
-void	 bar_fmt(const char *, char *, struct swm_region *, size_t);
-void	 bar_fmt_expand(char *, size_t);
-void	 bar_parse_markup(struct swm_screen *s, struct bar_section *);
-void	 bar_print(struct swm_region *, const char *);
-void	 bar_print_layout(struct swm_region *);
-void	 bar_print_legacy(struct swm_region *, const char *);
-void	 bar_split_format(char *);
+static void	 bar_draw(struct swm_bar *);
+static void	 bar_extra_setup(void);
+static void	 bar_extra_stop(void);
+static int	 bar_extra_update(void);
+static void	 bar_fmt(const char *, char *, struct swm_region *, size_t);
+static void	 bar_fmt_expand(char *, size_t);
+static void	 bar_parse_markup(struct swm_screen *s, struct bar_section *);
+static void	 bar_print(struct swm_region *, const char *);
+static void	 bar_print_layout(struct swm_region *);
+static void	 bar_print_legacy(struct swm_region *, const char *);
+static void	 bar_split_format(char *);
 static void	 bar_strlcat_esc(char *, char *, size_t, size_t *);
-void	 bar_replace(char *, char *, struct swm_region *, size_t);
-void	 bar_replace_action(char *, char *, struct swm_region *, size_t);
+static void	 bar_replace(char *, char *, struct swm_region *, size_t);
+static void	 bar_replace_action(char *, char *, struct swm_region *,
+		     size_t);
 static void	 bar_replace_pad(char *, size_t *, size_t);
-char	*bar_replace_seq(char *, char *, struct swm_region *, size_t *, size_t);
-void	 bar_setup(struct swm_region *);
-void	 bar_toggle(struct swm_screen *, struct binding *, union arg *);
+static char	*bar_replace_seq(char *, char *, struct swm_region *, size_t *,
+		     size_t);
+static void	 bar_setup(struct swm_region *);
+static void	 bar_toggle(struct swm_screen *, struct binding *, union arg *);
 static void	 bar_urgent(struct swm_screen *, char *, size_t);
 static void	 bar_window_class(char *, size_t, struct ws_win *, size_t *);
 static void	 bar_window_class_instance(char *, size_t, struct ws_win *,
@@ -1458,292 +1460,314 @@ static void	 bar_window_state(char *, size_t, struct ws_win *);
 static void	 bar_workspace_indicator(char *, size_t, struct swm_region *);
 static void	 bar_workspace_name(char *, size_t, struct workspace *,
 		     size_t *);
-void	 below_toggle(struct swm_screen *, struct binding *, union arg *);
-int	 binding_cmp(struct binding *, struct binding *);
-void	 binding_insert(uint16_t, enum binding_type, uint32_t, enum actionid,
-	     uint32_t, const char *);
-struct binding	*binding_lookup(uint16_t, enum binding_type, uint32_t);
-void	 binding_remove(struct binding *);
+static void	 below_toggle(struct swm_screen *, struct binding *,
+		     union arg *);
+static int	 binding_cmp(struct binding *, struct binding *);
+static void	 binding_insert(uint16_t, enum binding_type, uint32_t,
+		     enum actionid, uint32_t, const char *);
+static struct binding	*binding_lookup(uint16_t, enum binding_type, uint32_t);
+static void	 binding_remove(struct binding *);
 static bool	 bounds_intersect(struct swm_geometry *, struct swm_geometry *);
-bool	 button_has_binding(uint32_t);
-void	 buttonpress(xcb_button_press_event_t *);
-void	 buttonrelease(xcb_button_release_event_t *);
-void	 center_pointer(struct swm_region *);
+static bool	 button_has_binding(uint32_t);
+static void	 buttonpress(xcb_button_press_event_t *);
+static void	 buttonrelease(xcb_button_release_event_t *);
+static void	 center_pointer(struct swm_region *);
 static char	*cleanopt(char *);
-void	 clear_atom_names(void);
+static void	 clear_atom_names(void);
 static void	 clear_attention(struct ws_win *);
-void	 clear_bindings(void);
-void	 clear_keybindings(void);
-void	 clear_quirks(void);
+static void	 clear_bindings(void);
+static void	 clear_keybindings(void);
+static void	 clear_quirks(void);
 static void	 clear_spawns(void);
 static void	 clear_stack(struct swm_screen *);
-void	 click_focus(struct swm_screen *, xcb_window_t, int, int);
-void	 client_msg(struct ws_win *, xcb_atom_t, xcb_timestamp_t);
-void	 clientmessage(xcb_client_message_event_t *);
+static void	 click_focus(struct swm_screen *, xcb_window_t, int, int);
+static void	 client_msg(struct ws_win *, xcb_atom_t, xcb_timestamp_t);
+static void	 clientmessage(xcb_client_message_event_t *);
 static char	*color_to_rgb(struct swm_color *);
-int	 conf_load(const char *, int);
-void	 config_win(struct ws_win *, xcb_configure_request_event_t *);
-void	 configurenotify(xcb_configure_notify_event_t *);
-void	 configurerequest(xcb_configure_request_event_t *);
+static int	 conf_load(const char *, int);
+static void	 config_win(struct ws_win *, xcb_configure_request_event_t *);
+static void	 configurenotify(xcb_configure_notify_event_t *);
+static void	 configurerequest(xcb_configure_request_event_t *);
 static void	 constrain_window(struct ws_win *, struct swm_geometry *,
 		     uint32_t *);
 static bool	 contain_window(struct ws_win *, struct swm_geometry, int,
 		     uint32_t);
-int	 count_win(struct workspace *, uint32_t);
-int	 create_search_win(struct ws_win *, int);
-void	 cursors_cleanup(void);
-void	 cursors_load(void);
-void	 cyclerg(struct swm_screen *, struct binding *, union arg *);
-void	 cyclews(struct swm_screen *, struct binding *, union arg *);
-void	 debug_refresh(struct ws_win *);
-void	 debug_toggle(struct swm_screen *, struct binding *, union arg *);
-void	 destroynotify(xcb_destroy_notify_event_t *);
-void	 draw_frame(struct ws_win *);
-void	 dumpwins(struct swm_screen *, struct binding *, union arg *);
-void	 emptyws(struct swm_screen *, struct binding *, union arg *);
-int	 enable_wm(void);
-void	 enternotify(xcb_enter_notify_event_t *);
-void	 event_error(xcb_generic_error_t *);
-void	 event_handle(xcb_generic_event_t *);
+static int	 count_win(struct workspace *, uint32_t);
+static int	 create_search_win(struct ws_win *, int);
+static void	 cursors_cleanup(void);
+static void	 cursors_load(void);
+static void	 cyclerg(struct swm_screen *, struct binding *, union arg *);
+static void	 cyclews(struct swm_screen *, struct binding *, union arg *);
+static void	 debug_refresh(struct ws_win *);
+static void	 debug_toggle(struct swm_screen *, struct binding *,
+		     union arg *);
+static void	 destroynotify(xcb_destroy_notify_event_t *);
+static void	 draw_frame(struct ws_win *);
+static void	 dumpwins(struct swm_screen *, struct binding *, union arg *);
+static void	 emptyws(struct swm_screen *, struct binding *, union arg *);
+static int	 enable_wm(void);
+static void	 enternotify(xcb_enter_notify_event_t *);
+static void	 event_error(xcb_generic_error_t *);
+static void	 event_handle(xcb_generic_event_t *);
 static uint32_t	 ewmh_apply_flags(struct ws_win *, uint32_t);
 static uint32_t	 ewmh_change_wm_state(struct ws_win *, xcb_atom_t, long);
-void	 ewmh_get_desktop_names(struct swm_screen *);
-void	 ewmh_get_strut(struct ws_win *);
-void	 ewmh_get_window_type(struct ws_win *);
-void	 ewmh_get_wm_state(struct ws_win *);
-void	 ewmh_print_window_type(uint32_t);
-void	 ewmh_update_actions(struct ws_win *);
+static void	 ewmh_get_desktop_names(struct swm_screen *);
+static void	 ewmh_get_strut(struct ws_win *);
+static void	 ewmh_get_window_type(struct ws_win *);
+static void	 ewmh_get_wm_state(struct ws_win *);
+static void	 ewmh_print_window_type(uint32_t);
+static void	 ewmh_update_actions(struct ws_win *);
 static void	 ewmh_update_active_window(struct swm_screen *);
-void	 ewmh_update_client_list(struct swm_screen *);
-void	 ewmh_update_current_desktop(struct swm_screen *);
-void	 ewmh_update_desktop_names(struct swm_screen *);
+static void	 ewmh_update_client_list(struct swm_screen *);
+static void	 ewmh_update_current_desktop(struct swm_screen *);
+static void	 ewmh_update_desktop_names(struct swm_screen *);
 static void	 ewmh_update_number_of_desktops(struct swm_screen *);
-void	 ewmh_update_wm_state(struct ws_win *);
-void	 ewmh_update_workarea(struct swm_screen *);
+static void	 ewmh_update_wm_state(struct ws_win *);
+static void	 ewmh_update_workarea(struct swm_screen *);
 static void	 ewmh_update_desktop_viewports(struct swm_screen *);
 static char	*expand_tilde(const char *);
-void	 expose(xcb_expose_event_t *);
-void	 fake_keypress(struct ws_win *, xcb_keysym_t, uint16_t);
-struct swm_bar	*find_bar(xcb_window_t);
-struct ws_win	*find_main_window(struct ws_win *);
-struct pid_e	*find_pid(pid_t);
-struct swm_region	*find_region(xcb_window_t);
-struct swm_screen	*find_screen(xcb_window_t);
-struct ws_win	*find_window(xcb_window_t);
-void	 floating_toggle(struct swm_screen *, struct binding *, union arg *);
-void	 flush(void);
-void	 focus(struct swm_screen *, struct binding *, union arg *);
-void	 focus_follow(struct swm_screen *, struct swm_region *,
-	     struct ws_win *);
-void	 focus_pointer(struct swm_screen *, struct binding *, union arg *);
-void	 focus_region(struct swm_region *);
-void	 focus_win(struct swm_screen *s, struct ws_win *);
-void	 focus_win_input(struct ws_win *, bool);
-void	 focus_window(xcb_window_t);
-void	 focus_window_region(xcb_window_t);
-void	 focusin(xcb_focus_in_event_t *);
+static void	 expose(xcb_expose_event_t *);
+static void	 fake_keypress(struct ws_win *, xcb_keysym_t, uint16_t);
+static struct swm_bar	*find_bar(xcb_window_t);
+static struct ws_win	*find_main_window(struct ws_win *);
+static struct pid_e	*find_pid(pid_t);
+static struct swm_region	*find_region(xcb_window_t);
+static struct swm_screen	*find_screen(xcb_window_t);
+static struct ws_win	*find_window(xcb_window_t);
+static void	 floating_toggle(struct swm_screen *, struct binding *,
+		     union arg *);
+static void	 flush(void);
+static void	 focus(struct swm_screen *, struct binding *, union arg *);
+static void	 focus_follow(struct swm_screen *, struct swm_region *,
+		     struct ws_win *);
+static void	 focus_pointer(struct swm_screen *, struct binding *,
+		     union arg *);
+static void	 focus_region(struct swm_region *);
+static void	 focus_win(struct swm_screen *s, struct ws_win *);
+static void	 focus_win_input(struct ws_win *, bool);
+static void	 focus_window(xcb_window_t);
+static void	 focus_window_region(xcb_window_t);
+static void	 focusin(xcb_focus_in_event_t *);
 static void	 focusout(xcb_focus_out_event_t *);
-void	 focusrg(struct swm_screen *, struct binding *, union arg *);
+static void	 focusrg(struct swm_screen *, struct binding *, union arg *);
 static bool	 follow_mode(unsigned int);
 static bool	 follow_pointer(struct swm_screen *, unsigned int);
-int	 fontset_init(void);
+static int	 fontset_init(void);
 static void	 freecolortype(struct swm_screen *, int);
 static void	 free_stackable(struct swm_stackable *);
-void	 free_toggle(struct swm_screen *, struct binding *, union arg *);
-void	 free_window(struct ws_win *);
-void	 fullscreen_toggle(struct swm_screen *, struct binding *, union arg *);
-xcb_atom_t	 get_atom_from_string(const char *);
-const char	*get_atom_label(xcb_atom_t);
-char	*get_atom_name(xcb_atom_t);
-struct swm_geometry	 get_boundary(struct ws_win *);
+static void	 free_toggle(struct swm_screen *, struct binding *,
+		     union arg *);
+static void	 free_window(struct ws_win *);
+static void	 fullscreen_toggle(struct swm_screen *, struct binding *,
+		     union arg *);
+static xcb_atom_t	 get_atom_from_string(const char *);
+static const char	*get_atom_label(xcb_atom_t);
+static char	*get_atom_name(xcb_atom_t);
+static struct swm_geometry	 get_boundary(struct ws_win *);
 static int	 get_character_font(struct swm_screen *, FcChar32, int);
-struct swm_region	*get_current_region(struct swm_screen *);
+static struct swm_region	*get_current_region(struct swm_screen *);
 static struct swm_color *getcolor(struct swm_screen *, int, int);
 static uint32_t	 getcolorpixel(struct swm_screen *, int, int);
 static char	*getcolorrgb(struct swm_screen *, int, int);
 static XftColor	*getcolorxft(struct swm_screen *, int, int);
-const char	*get_event_label(xcb_generic_event_t *);
-struct ws_win	*get_focus_magic(struct ws_win *);
-struct ws_win	*get_focus_other(struct ws_win *);
+static const char	*get_event_label(xcb_generic_event_t *);
+static struct ws_win	*get_focus_magic(struct ws_win *);
+static struct ws_win	*get_focus_other(struct ws_win *);
 static const char	*get_gravity_label(uint8_t);
 #ifdef SWM_XCB_HAS_XINPUT
-const char	*get_input_event_label(xcb_ge_generic_event_t *);
+static const char	*get_input_event_label(xcb_ge_generic_event_t *);
 #endif
-xcb_window_t	 get_input_focus(void);
-xcb_atom_t	 get_intern_atom(const char *);
-xcb_keycode_t	 get_keysym_keycode(xcb_keysym_t);
-struct ws_win	*get_main_window(struct workspace *);
-const char	*get_mapping_notify_label(uint8_t);
-const char	*get_moveresize_direction_label(uint32_t);
-xcb_generic_event_t	*get_next_event(bool);
-const char	*get_notify_detail_label(uint8_t);
-const char	*get_notify_mode_label(uint8_t);
-struct swm_region	*get_pointer_region(struct swm_screen *);
-struct ws_win	*get_pointer_win(struct swm_screen *);
-const char	*get_randr_event_label(xcb_generic_event_t *);
-const char	*get_randr_rotation_label(int);
-struct swm_region	*get_region(struct swm_screen *, int);
-int	 get_region_index(struct swm_region *);
-xcb_screen_t	*get_screen(int);
-int	 get_screen_count(void);
-const struct xcb_setup_t	*get_setup(void);
-const char	*get_source_type_label(uint32_t);
-const char	*get_stack_mode_label(uint8_t);
-const char	*get_state_mask_label(uint16_t);
-xcb_keysym_t	 get_string_keysym(const char *);
-int32_t	 get_swm_ws(xcb_window_t);
-const char	*get_win_input_model_label(struct ws_win *);
-char	*get_win_name(xcb_window_t);
-uint32_t	 get_win_state(xcb_window_t);
+static xcb_window_t	 get_input_focus(void);
+static xcb_atom_t	 get_intern_atom(const char *);
+static xcb_keycode_t	 get_keysym_keycode(xcb_keysym_t);
+static struct ws_win	*get_main_window(struct workspace *);
+static const char	*get_mapping_notify_label(uint8_t);
+static const char	*get_moveresize_direction_label(uint32_t);
+static xcb_generic_event_t	*get_next_event(bool);
+static const char	*get_notify_detail_label(uint8_t);
+static const char	*get_notify_mode_label(uint8_t);
+static struct swm_region	*get_pointer_region(struct swm_screen *);
+static struct ws_win	*get_pointer_win(struct swm_screen *);
+static const char	*get_randr_event_label(xcb_generic_event_t *);
+static const char	*get_randr_rotation_label(int);
+static struct swm_region	*get_region(struct swm_screen *, int);
+static int	 get_region_index(struct swm_region *);
+static xcb_screen_t	*get_screen(int);
+static int	 get_screen_count(void);
+static const struct xcb_setup_t	*get_setup(void);
+static const char	*get_source_type_label(uint32_t);
+static const char	*get_stack_mode_label(uint8_t);
+static const char	*get_state_mask_label(uint16_t);
+static xcb_keysym_t	 get_string_keysym(const char *);
+static int32_t	 get_swm_ws(xcb_window_t);
+static const char	*get_win_input_model_label(struct ws_win *);
+static char	*get_win_name(xcb_window_t);
+static uint32_t	 get_win_state(xcb_window_t);
 static void	 get_wm_hints(struct ws_win *);
 static void	 get_wm_normal_hints(struct ws_win *);
-void	 get_wm_protocols(struct ws_win *);
-const char	*get_wm_state_label(uint32_t);
+static void	 get_wm_protocols(struct ws_win *);
+static const char	*get_wm_state_label(uint32_t);
 static bool	 get_wm_transient_for(struct ws_win *);
-struct workspace	*get_workspace(struct swm_screen *, int);
-struct ws_win	*get_ws_focus(struct workspace *);
-struct ws_win	*get_ws_focus_prev(struct workspace *);
-int	 get_ws_id(struct ws_win *);
-void	 grab_buttons_win(xcb_window_t);
-void	 grab_windows(void);
-void	 grabbuttons(void);
-void	 grabkeys(void);
-void	 iconify(struct swm_screen *, struct binding *, union arg *);
-bool	 isxlfd(char *);
-bool	 keybindreleased(struct binding *, xcb_key_release_event_t *);
-void	 keypress(xcb_key_press_event_t *);
-void	 keyrelease(xcb_key_release_event_t *);
-bool	 keyrepeating(xcb_key_release_event_t *);
-void	 kill_bar_extra_atexit(void);
-void	 kill_refs(struct ws_win *);
+static struct workspace	*get_workspace(struct swm_screen *, int);
+static struct ws_win	*get_ws_focus(struct workspace *);
+static struct ws_win	*get_ws_focus_prev(struct workspace *);
+static int	 get_ws_id(struct ws_win *);
+static void	 grab_buttons_win(xcb_window_t);
+static void	 grab_windows(void);
+static void	 grabbuttons(void);
+static void	 grabkeys(void);
+static void	 iconify(struct swm_screen *, struct binding *, union arg *);
+static bool	 isxlfd(char *);
+static bool	 keybindreleased(struct binding *, xcb_key_release_event_t *);
+static void	 keypress(xcb_key_press_event_t *);
+static void	 keyrelease(xcb_key_release_event_t *);
+static bool	 keyrepeating(xcb_key_release_event_t *);
+static void	 kill_bar_extra_atexit(void);
+static void	 kill_refs(struct ws_win *);
 static void	 layout_order_reset(void);
-void	 leavenotify(xcb_leave_notify_event_t *);
-void	 load_float_geom(struct ws_win *);
-struct ws_win	*manage_window(xcb_window_t, int, bool);
-void	 map_window(struct ws_win *);
-void	 mapnotify(xcb_map_notify_event_t *);
-void	 mappingnotify(xcb_mapping_notify_event_t *);
-void	 maprequest(xcb_map_request_event_t *);
-void	 maximize_toggle(struct swm_screen *, struct binding *, union arg *);
-void	 motionnotify(xcb_motion_notify_event_t *);
-void	 move(struct swm_screen *, struct binding *, union arg *);
-void	 move_win(struct ws_win *, struct binding *, int);
-void	 move_win_pointer(struct ws_win *, struct binding *, uint32_t,
-	     uint32_t);
-void	 moveresize_win(struct ws_win *, xcb_client_message_event_t *);
-void	 name_workspace(struct swm_screen *, struct binding *, union arg *);
-void	 new_region(struct swm_screen *, int16_t, int16_t, uint16_t, uint16_t,
-	     uint16_t);
-int	 parse_color(struct swm_screen *, const char *, struct swm_color *);
+static void	 leavenotify(xcb_leave_notify_event_t *);
+static void	 load_float_geom(struct ws_win *);
+static struct ws_win	*manage_window(xcb_window_t, int, bool);
+static void	 map_window(struct ws_win *);
+static void	 mapnotify(xcb_map_notify_event_t *);
+static void	 mappingnotify(xcb_mapping_notify_event_t *);
+static void	 maprequest(xcb_map_request_event_t *);
+static void	 maximize_toggle(struct swm_screen *, struct binding *,
+		     union arg *);
+static void	 motionnotify(xcb_motion_notify_event_t *);
+static void	 move(struct swm_screen *, struct binding *, union arg *);
+static void	 move_win(struct ws_win *, struct binding *, int);
+static void	 move_win_pointer(struct ws_win *, struct binding *, uint32_t,
+		     uint32_t);
+static void	 moveresize_win(struct ws_win *, xcb_client_message_event_t *);
+static void	 name_workspace(struct swm_screen *, struct binding *,
+		     union arg *);
+static void	 new_region(struct swm_screen *, int16_t, int16_t, uint16_t,
+		     uint16_t, uint16_t);
+static int	 parse_color(struct swm_screen *, const char *,
+		     struct swm_color *);
 static int	 parse_focus_types(const char *, uint32_t *, char **);
-int	 parse_rgb(const char *, uint16_t *, uint16_t *, uint16_t *);
-int	 parse_rgba(const char *, uint16_t *, uint16_t *, uint16_t *,
-	     uint16_t *);
+static int	 parse_rgb(const char *, uint16_t *, uint16_t *, uint16_t *);
+static int	 parse_rgba(const char *, uint16_t *, uint16_t *, uint16_t *,
+		     uint16_t *);
 static int	 parse_window_type(const char *, uint32_t *, char **);
 static int	 parse_spawn_flags(const char *, uint32_t *, char **);
-int	 parse_workspace_indicator(const char *, uint32_t *, char **);
-int	 parsebinding(const char *, uint16_t *, enum binding_type *, uint32_t *,
-	     uint32_t *, char **);
+static int	 parse_workspace_indicator(const char *, uint32_t *, char **);
+static int	 parsebinding(const char *, uint16_t *, enum binding_type *,
+		     uint32_t *, uint32_t *, char **);
 static int	 parseconfcolor(uint8_t, const char *, const char *, int, bool,
 		     char **);
-int	 parsequirks(const char *, uint32_t *, int *, char **);
-void	 pressbutton(struct swm_screen *, struct binding *, union arg *);
-void	 print_stackable(struct swm_stackable *);
-void	 print_stacking(struct swm_screen *);
-void	 print_strut(struct swm_strut *);
-void	 print_win_geom(xcb_window_t);
-void	 prioritize_window(struct ws_win *);
-void	 priorws(struct swm_screen *, struct binding *, union arg *);
-void	 propertynotify(xcb_property_notify_event_t *);
-void	 put_back_event(xcb_generic_event_t *);
-void	 quirk_free(struct quirk *);
-void	 quirk_insert(const char *, const char *, const char *, uint32_t,
-	     uint8_t, uint32_t, int);
-void	 quirk_remove(struct quirk *);
-void	 quirk_replace(struct quirk *, const char *, const char *, const char *,
-	     uint32_t, uint8_t, uint32_t, int);
-void	 quit(struct swm_screen *, struct binding *, union arg *);
-void	 raise_focus(struct swm_screen *, struct binding *, union arg *);
-void	 raise_toggle(struct swm_screen *, struct binding *, union arg *);
+static int	 parsequirks(const char *, uint32_t *, int *, char **);
+static void	 pressbutton(struct swm_screen *, struct binding *,
+		     union arg *);
+static void	 print_stackable(struct swm_stackable *);
+static void	 print_stacking(struct swm_screen *);
+static void	 print_strut(struct swm_strut *);
+static void	 print_win_geom(xcb_window_t);
+static void	 prioritize_window(struct ws_win *);
+static void	 priorws(struct swm_screen *, struct binding *, union arg *);
+static void	 propertynotify(xcb_property_notify_event_t *);
+static void	 put_back_event(xcb_generic_event_t *);
+static void	 quirk_free(struct quirk *);
+static void	 quirk_insert(const char *, const char *, const char *,
+		     uint32_t, uint8_t, uint32_t, int);
+static void	 quirk_remove(struct quirk *);
+static void	 quirk_replace(struct quirk *, const char *, const char *,
+		     const char *, uint32_t, uint8_t, uint32_t, int);
+static void	 quit(struct swm_screen *, struct binding *, union arg *);
+static void	 raise_focus(struct swm_screen *, struct binding *,
+		     union arg *);
+static void	 raise_toggle(struct swm_screen *, struct binding *,
+		     union arg *);
 #if defined(SWM_XCB_HAS_XINPUT) && defined(XCB_INPUT_RAW_BUTTON_PRESS)
-void	 rawbuttonpress(xcb_input_raw_button_press_event_t *);
+static void	 rawbuttonpress(xcb_input_raw_button_press_event_t *);
 #endif
-void	 refresh_stack(struct swm_screen *);
+static void	 refresh_stack(struct swm_screen *);
 static int	 refresh_strut(struct swm_screen *);
 static int	 regcompopt(regex_t *, const char *);
-struct swm_region	*region_under(struct swm_screen *, int, int);
-void	 regionize(struct ws_win *, int, int);
-int	 reparent_window(struct ws_win *);
-void	 reparentnotify(xcb_reparent_notify_event_t *);
-void	 resize(struct swm_screen *, struct binding *, union arg *);
-void	 resize_win(struct ws_win *, struct binding *, int);
-void	 resize_win_pointer(struct ws_win *, struct binding *, uint32_t,
+static struct swm_region	*region_under(struct swm_screen *, int, int);
+static void	 regionize(struct ws_win *, int, int);
+static int	 reparent_window(struct ws_win *);
+static void	 reparentnotify(xcb_reparent_notify_event_t *);
+static void	 resize(struct swm_screen *, struct binding *, union arg *);
+static void	 resize_win(struct ws_win *, struct binding *, int);
+static void	 resize_win_pointer(struct ws_win *, struct binding *, uint32_t,
 	     uint32_t, uint32_t, bool);
-void	 restart(struct swm_screen *, struct binding *, union arg *);
+static void	 restart(struct swm_screen *, struct binding *, union arg *);
 static bool	 rg_root(struct swm_region *);
-void	 rotatews(struct workspace *, uint16_t);
-void	 scan_config(void);
+static void	 rotatews(struct workspace *, uint16_t);
+static void	 scan_config(void);
 static bool	 scan_markup(struct swm_screen *, char *, int *, size_t *);
-void	 scan_randr(struct swm_screen *);
-void	 screenchange(xcb_randr_screen_change_notify_event_t *);
-void	 search_do_resp(void);
-void	 search_resp_name_workspace(const char *, size_t);
-void	 search_resp_search_window(const char *);
-void	 search_resp_search_workspace(const char *);
-void	 search_resp_uniconify(const char *, size_t);
-void	 search_win(struct swm_screen *, struct binding *, union arg *);
-void	 search_win_cleanup(void);
-void	 search_workspace(struct swm_screen *, struct binding *, union arg *);
-void	 send_to_rg(struct swm_screen *, struct binding *, union arg *);
-void	 send_to_rg_relative(struct swm_screen *, struct binding *, union arg *);
-void	 send_to_ws(struct swm_screen *, struct binding *, union arg *);
+static void	 scan_randr(struct swm_screen *);
+static void	 screenchange(xcb_randr_screen_change_notify_event_t *);
+static void	 search_do_resp(void);
+static void	 search_resp_name_workspace(const char *, size_t);
+static void	 search_resp_search_window(const char *);
+static void	 search_resp_search_workspace(const char *);
+static void	 search_resp_uniconify(const char *, size_t);
+static void	 search_win(struct swm_screen *, struct binding *, union arg *);
+static void	 search_win_cleanup(void);
+static void	 search_workspace(struct swm_screen *, struct binding *,
+		     union arg *);
+static void	 send_to_rg(struct swm_screen *, struct binding *, union arg *);
+static void	 send_to_rg_relative(struct swm_screen *, struct binding *,
+		     union arg *);
+static void	 send_to_ws(struct swm_screen *, struct binding *, union arg *);
 static void	 set_attention(struct ws_win *);
-void	 set_focus(struct swm_screen *, struct ws_win *);
-void	 set_focus_prev(struct ws_win *);
-void	 set_focus_redirect(struct ws_win *);
-void	 set_input_focus(xcb_window_t, bool);
-void	 set_region(struct swm_region *);
-void	 set_win_state(struct ws_win *, uint32_t);
-int	 setautorun(uint8_t, const char *, const char *, int, char **);
-void	 setbinding(uint16_t, enum binding_type, uint32_t, enum actionid,
-	     uint32_t, const char *);
-int	 setconfbinding(uint8_t, const char *, const char *, int, char **);
-int	 setconfcancelkey(uint8_t, const char *, const char *, int, char **);
+static void	 set_focus(struct swm_screen *, struct ws_win *);
+static void	 set_focus_prev(struct ws_win *);
+static void	 set_focus_redirect(struct ws_win *);
+static void	 set_input_focus(xcb_window_t, bool);
+static void	 set_region(struct swm_region *);
+static void	 set_win_state(struct ws_win *, uint32_t);
+static int	 setautorun(uint8_t, const char *, const char *, int, char **);
+static void	 setbinding(uint16_t, enum binding_type, uint32_t,
+		     enum actionid, uint32_t, const char *);
+static int	 setconfbinding(uint8_t, const char *, const char *, int,
+		     char **);
+static int	 setconfcancelkey(uint8_t, const char *, const char *, int,
+		     char **);
 static int	 setconfcolor(uint8_t, const char *, const char *, int,
 		     char **);
 static int	 setconfcolorlist(uint8_t, const char *, const char *, int,
 		     char **);
-int	 setconfmodkey(uint8_t, const char *, const char *, int, char **);
-int	 setconfquirk(uint8_t, const char *, const char *, int, char **);
-int	 setconfregion(uint8_t, const char *, const char *, int, char **);
-int	 setconfspawn(uint8_t, const char *, const char *, int, char **);
+static int	 setconfmodkey(uint8_t, const char *, const char *, int,
+		     char **);
+static int	 setconfquirk(uint8_t, const char *, const char *, int,
+		     char **);
+static int	 setconfregion(uint8_t, const char *, const char *, int,
+		     char **);
+static int	 setconfspawn(uint8_t, const char *, const char *, int,
+		     char **);
 static int	 setconfspawnflags(uint8_t, const char *, const char *, int,
 		     char **);
-int	 setconfvalue(uint8_t, const char *, const char *, int, char **);
-int	 setkeymapping(uint8_t, const char *, const char *, int, char **);
-int	 setlayout(uint8_t, const char *, const char *, int, char **);
+static int	 setconfvalue(uint8_t, const char *, const char *, int,
+		     char **);
+static int	 setkeymapping(uint8_t, const char *, const char *, int,
+		     char **);
+static int	 setlayout(uint8_t, const char *, const char *, int, char **);
 static int	 setlayoutorder(const char *, char **);
 static void	 setquirk(const char *, const char *, const char *, uint32_t,
 		     uint8_t, uint32_t, int);
 static void	 setscreencolor(struct swm_screen *, const char *, int, int);
 static void	 setspawn(const char *, const char *, unsigned int);
-void	 setup_btnbindings(void);
-void	 setup_ewmh(void);
-void	 setup_extensions(void);
-void	 setup_focus(void);
-void	 setup_fonts(void);
-void	 setup_globals(void);
-void	 setup_keybindings(void);
-void	 setup_marks(void);
-void	 setup_quirks(void);
-void	 setup_screens(void);
-void	 setup_spawn(void);
+static void	 setup_btnbindings(void);
+static void	 setup_ewmh(void);
+static void	 setup_extensions(void);
+static void	 setup_focus(void);
+static void	 setup_fonts(void);
+static void	 setup_globals(void);
+static void	 setup_keybindings(void);
+static void	 setup_marks(void);
+static void	 setup_quirks(void);
+static void	 setup_screens(void);
+static void	 setup_spawn(void);
 #if defined(SWM_XCB_HAS_XINPUT) && defined(XCB_INPUT_RAW_BUTTON_PRESS)
-void	 setup_xinput2(struct swm_screen *);
+static void	 setup_xinput2(struct swm_screen *);
 #endif
-void	 shutdown_cleanup(void);
-void	 sighdlr(int);
-void	 socket_setnonblock(int);
+static void	 shutdown_cleanup(void);
+static void	 sighdlr(int);
+static void	 socket_setnonblock(int);
 static void	 spawn(int, union arg *, unsigned int);
 static void	 spawn_custom(struct swm_screen *, union arg *, const char *);
 static int	 spawn_expand(struct swm_screen *, struct spawn_prog *, int,
@@ -1751,53 +1775,57 @@ static int	 spawn_expand(struct swm_screen *, struct spawn_prog *, int,
 static struct spawn_prog	*spawn_find(const char *);
 static void	 spawn_insert(const char *, const char *, unsigned int);
 static void	 spawn_remove(struct spawn_prog *);
-void	 spawn_select(struct swm_region *, union arg *, const char *, int *);
+static void	 spawn_select(struct swm_region *, union arg *, const char *,
+		     int *);
 static xcb_window_t	 st_window_id(struct swm_stackable *);
-void	 stack_config(struct swm_screen *, struct binding *, union arg *);
-void	 stack_master(struct workspace *, struct swm_geometry *, int, bool);
-void	 store_float_geom(struct ws_win *);
-char	*strdupsafe(const char *);
+static void	 stack_config(struct swm_screen *, struct binding *,
+		     union arg *);
+static void	 stack_master(struct workspace *, struct swm_geometry *, int,
+		     bool);
+static void	 store_float_geom(struct ws_win *);
+static char	*strdupsafe(const char *);
 static int32_t	 strtoint32(const char *, int32_t, int32_t, int *);
-void	 swapwin(struct swm_screen *, struct binding *, union arg *);
+static void	 swapwin(struct swm_screen *, struct binding *, union arg *);
 static void	 switch_workspace(struct swm_region *, struct workspace *, bool,
 		     bool);
-void	 switchlayout(struct swm_screen *, struct binding *, union arg *);
-void	 switchws(struct swm_screen *, struct binding *, union arg *);
-void	 teardown_ewmh(void);
-void	 transfer_win(struct ws_win *, struct workspace *);
+static void	 switchlayout(struct swm_screen *, struct binding *,
+		     union arg *);
+static void	 switchws(struct swm_screen *, struct binding *, union arg *);
+static void	 teardown_ewmh(void);
+static void	 transfer_win(struct ws_win *, struct workspace *);
 static char	*trimopt(char *);
-void	 update_mapping(struct swm_screen *);
-void	 update_region_mapping(struct swm_region *);
-void	 update_stacking(struct swm_screen *);
-void	 unescape_selector(char *);
-char	*unescape_value(const char *);
-void	 unfocus_win(struct ws_win *);
-void	 uniconify(struct swm_screen *, struct binding *, union arg *);
-void	 unmanage_window(struct ws_win *);
-void	 unmap_window(struct ws_win *);
-void	 unmap_workspace(struct workspace *);
-void	 unmapnotify(xcb_unmap_notify_event_t *);
-void	 unparent_window(struct ws_win *);
+static void	 update_mapping(struct swm_screen *);
+static void	 update_region_mapping(struct swm_region *);
+static void	 update_stacking(struct swm_screen *);
+static void	 unescape_selector(char *);
+static char	*unescape_value(const char *);
+static void	 unfocus_win(struct ws_win *);
+static void	 uniconify(struct swm_screen *, struct binding *, union arg *);
+static void	 unmanage_window(struct ws_win *);
+static void	 unmap_window(struct ws_win *);
+static void	 unmap_workspace(struct workspace *);
+static void	 unmapnotify(xcb_unmap_notify_event_t *);
+static void	 unparent_window(struct ws_win *);
 static void	 unsnap_win(struct ws_win *, bool);
 static void	 update_bars(struct swm_screen *);
-void	 update_debug(struct swm_screen *);
-void	 update_floater(struct ws_win *);
-void	 update_focus(struct swm_screen *);
+static void	 update_debug(struct swm_screen *);
+static void	 update_floater(struct ws_win *);
+static void	 update_focus(struct swm_screen *);
 static void	 update_gravity(struct ws_win *);
-void	 update_keycodes(void);
+static void	 update_keycodes(void);
 static void	 update_layout(struct swm_screen *);
-void	 update_modkey(uint16_t);
-void	 update_stackable(struct swm_stackable *, struct swm_stackable *);
-void	 update_win_layer(struct ws_win *);
-void	 update_win_layer_related(struct ws_win *);
-void	 update_window(struct ws_win *);
-void	 update_wm_state(struct  ws_win *win);
-void	 updatenumlockmask(void);
+static void	 update_modkey(uint16_t);
+static void	 update_stackable(struct swm_stackable *,
+		     struct swm_stackable *);
+static void	 update_win_layer(struct ws_win *);
+static void	 update_win_layer_related(struct ws_win *);
+static void	 update_window(struct ws_win *);
+static void	 updatenumlockmask(void);
 static void	 usage(void);
-void	 validate_spawns(void);
-int	 validate_win(struct ws_win *);
-int	 validate_ws(struct workspace *);
-void	 version(struct swm_screen *, struct binding *, union arg *);
+static void	 validate_spawns(void);
+static int	 validate_win(struct ws_win *);
+static int	 validate_ws(struct workspace *);
+static void	 version(struct swm_screen *, struct binding *, union arg *);
 static bool	 win_below(struct ws_win *);
 static uint16_t	 win_border(struct ws_win *);
 static bool	 win_floating(struct ws_win *);
@@ -1808,32 +1836,32 @@ static bool	 win_main(struct ws_win *);
 static bool	 win_raised(struct ws_win *);
 static bool	 win_related(struct ws_win *, struct ws_win *);
 static bool	 win_reparented(struct ws_win *);
-void	 win_to_ws(struct ws_win *, struct workspace *, uint32_t);
+static void	 win_to_ws(struct ws_win *, struct workspace *, uint32_t);
 static bool	 win_transient(struct ws_win *);
 static bool	 win_urgent(struct ws_win *);
-pid_t	 window_get_pid(xcb_window_t);
-void	 wkill(struct swm_screen *, struct binding *, union arg *);
-int	 workspace_cmp(struct workspace *, struct workspace *);
-struct workspace	*workspace_insert(struct swm_screen *, int);
-struct workspace	*workspace_lookup(struct swm_screen *, int);
-void		 workspace_remove(struct workspace *);
+static pid_t	 window_get_pid(xcb_window_t);
+static void	 wkill(struct swm_screen *, struct binding *, union arg *);
+static int	 workspace_cmp(struct workspace *, struct workspace *);
+static struct workspace	*workspace_insert(struct swm_screen *, int);
+static struct workspace	*workspace_lookup(struct swm_screen *, int);
+static void		 workspace_remove(struct workspace *);
 static bool	 ws_floating(struct workspace *);
 static bool	 ws_focused(struct workspace *);
 static bool	 ws_maponfocus(struct workspace *);
 static bool	 ws_maxstack(struct workspace *);
 static bool	 ws_maxstack_prior(struct workspace *);
 static bool	 ws_root(struct workspace *);
-int	 xft_init(struct swm_screen *);
-void	 _add_startup_exception(const char *, va_list);
-void	 add_startup_exception(const char *, ...);
+static int	 xft_init(struct swm_screen *);
+static void	 _add_startup_exception(const char *, va_list);
+static void	 add_startup_exception(const char *, ...);
 
-RB_PROTOTYPE(binding_tree, binding, entry, binding_cmp);
-RB_PROTOTYPE(atom_name_tree, atom_name, entry, atom_name_cmp);
-RB_PROTOTYPE(workspace_tree, workspace, entry, workspace_cmp);
+RB_PROTOTYPE_STATIC(binding_tree, binding, entry, binding_cmp);
+RB_PROTOTYPE_STATIC(atom_name_tree, atom_name, entry, atom_name_cmp);
+RB_PROTOTYPE_STATIC(workspace_tree, workspace, entry, workspace_cmp);
 
-RB_GENERATE(binding_tree, binding, entry, binding_cmp);
-RB_GENERATE(atom_name_tree, atom_name, entry, atom_name_cmp);
-RB_GENERATE(workspace_tree, workspace, entry, workspace_cmp);
+RB_GENERATE_STATIC(binding_tree, binding, entry, binding_cmp);
+RB_GENERATE_STATIC(atom_name_tree, atom_name, entry, atom_name_cmp);
+RB_GENERATE_STATIC(workspace_tree, workspace, entry, workspace_cmp);
 
 static bool
 win_free(struct ws_win *win)
@@ -1978,7 +2006,7 @@ st_window_id(struct swm_stackable *st)
 	return (wid);
 }
 
-int
+static int
 workspace_cmp(struct workspace *ws1, struct workspace *ws2)
 {
 	if (ws1->idx < ws2->idx)
@@ -1988,7 +2016,7 @@ workspace_cmp(struct workspace *ws1, struct workspace *ws2)
 	return (0);
 }
 
-struct workspace *
+static struct workspace *
 workspace_lookup(struct swm_screen *s, int id)
 {
 	struct workspace	ws;
@@ -1999,7 +2027,7 @@ workspace_lookup(struct swm_screen *s, int id)
 }
 
 /* Get/create workspace for given screen and id. */
-struct workspace *
+static struct workspace *
 get_workspace(struct swm_screen *s, int id)
 {
 	struct workspace	*ws;
@@ -2014,7 +2042,7 @@ get_workspace(struct swm_screen *s, int id)
 	return (ws);
 }
 
-struct workspace *
+static struct workspace *
 workspace_insert(struct swm_screen *s, int id)
 {
 	struct workspace	*ws;
@@ -2053,7 +2081,7 @@ workspace_insert(struct swm_screen *s, int id)
 	return (ws);
 }
 
-void
+static void
 workspace_remove(struct workspace *ws)
 {
 	RB_REMOVE(workspace_tree, &ws->s->workspaces, ws);
@@ -2062,7 +2090,7 @@ workspace_remove(struct workspace *ws)
 	free(ws);
 }
 
-void
+static void
 cursors_load(void)
 {
 	xcb_font_t	cf = XCB_NONE;
@@ -2092,7 +2120,7 @@ cursors_load(void)
 		xcb_close_font(conn, cf);
 }
 
-void
+static void
 cursors_cleanup(void)
 {
 	int	i;
@@ -2138,7 +2166,7 @@ expand_tilde(const char *str)
 	return (result);
 }
 
-int
+static int
 parse_rgba(const char *rgba, uint16_t *rr, uint16_t *gg, uint16_t *bb,
     uint16_t *aa)
 {
@@ -2155,7 +2183,7 @@ parse_rgba(const char *rgba, uint16_t *rr, uint16_t *gg, uint16_t *bb,
 	return (0);
 }
 
-int
+static int
 parse_rgb(const char *rgb, uint16_t *rr, uint16_t *gg, uint16_t *bb)
 {
 	unsigned int	tmpr, tmpg, tmpb;
@@ -2170,7 +2198,7 @@ parse_rgb(const char *rgb, uint16_t *rr, uint16_t *gg, uint16_t *bb)
 	return (0);
 }
 
-const struct xcb_setup_t *
+static const struct xcb_setup_t *
 get_setup(void)
 {
 	int	 errcode = xcb_connection_has_error(conn);
@@ -2217,7 +2245,7 @@ get_setup(void)
 	return (xcb_get_setup(conn));
 }
 
-xcb_screen_t *
+static xcb_screen_t *
 get_screen(int screen)
 {
 	const xcb_setup_t	*r;
@@ -2232,13 +2260,13 @@ get_screen(int screen)
 	return (NULL);
 }
 
-int
+static int
 get_screen_count(void)
 {
 	return (xcb_setup_roots_length(get_setup()));
 }
 
-struct swm_region *
+static struct swm_region *
 get_region(struct swm_screen *s, int index)
 {
 	struct swm_region 	*r;
@@ -2256,7 +2284,7 @@ get_region(struct swm_screen *s, int index)
 	return (r);
 }
 
-int
+static int
 get_region_index(struct swm_region *r)
 {
 	struct swm_region	*rr;
@@ -2282,7 +2310,7 @@ get_region_index(struct swm_region *r)
 	return (ridx);
 }
 
-void
+static void
 flush(void)
 {
 	xcb_generic_event_t	*e;
@@ -2315,7 +2343,7 @@ flush(void)
 	flushing = false;
 }
 
-xcb_atom_t
+static xcb_atom_t
 get_intern_atom(const char *str)
 {
 	xcb_intern_atom_cookie_t	c;
@@ -2334,7 +2362,7 @@ get_intern_atom(const char *str)
 	return (XCB_ATOM_NONE);
 }
 
-char *
+static char *
 get_atom_name(xcb_atom_t atom)
 {
 	xcb_get_atom_name_reply_t	*r;
@@ -2362,7 +2390,7 @@ get_atom_name(xcb_atom_t atom)
 	return (name);
 }
 
-int
+static int
 atom_name_cmp(struct atom_name *ap1, struct atom_name *ap2)
 {
 	if (ap1->atom < ap2->atom)
@@ -2372,7 +2400,7 @@ atom_name_cmp(struct atom_name *ap1, struct atom_name *ap2)
 	return (0);
 }
 
-void
+static void
 atom_name_insert(xcb_atom_t atom, char *name)
 {
 	struct atom_name	*ap;
@@ -2386,7 +2414,7 @@ atom_name_insert(xcb_atom_t atom, char *name)
 		errx(1, "atom_name_insert: RB_INSERT");
 }
 
-void
+static void
 atom_name_remove(struct atom_name *ap)
 {
 	RB_REMOVE(atom_name_tree, &atom_names, ap);
@@ -2394,7 +2422,7 @@ atom_name_remove(struct atom_name *ap)
 	free(ap);
 }
 
-void
+static void
 clear_atom_names(void)
 {
 	struct atom_name	*ap;
@@ -2405,7 +2433,7 @@ clear_atom_names(void)
 #endif
 }
 
-struct atom_name *
+static struct atom_name *
 atom_name_lookup(xcb_atom_t atom)
 {
 	struct atom_name	ap;
@@ -2415,7 +2443,7 @@ atom_name_lookup(xcb_atom_t atom)
 	return (RB_FIND(atom_name_tree, &atom_names, &ap));
 }
 
-xcb_atom_t
+static xcb_atom_t
 get_atom_from_string(const char *str)
 {
 	xcb_atom_t		atom;
@@ -2434,7 +2462,7 @@ get_atom_from_string(const char *str)
 	return (atom);
 }
 
-const char *
+static const char *
 get_atom_label(xcb_atom_t atom)
 {
 	struct atom_name	*ap;
@@ -2452,7 +2480,7 @@ get_atom_label(xcb_atom_t atom)
 	return (name);
 }
 
-void
+static void
 get_wm_protocols(struct ws_win *win) {
 	int				i;
 	xcb_icccm_get_wm_protocols_reply_t	wpr;
@@ -2470,7 +2498,7 @@ get_wm_protocols(struct ws_win *win) {
 	}
 }
 
-void
+static void
 setup_ewmh(void)
 {
 	xcb_window_t			root, swmwin;
@@ -2506,7 +2534,7 @@ setup_ewmh(void)
 	}
 }
 
-void
+static void
 teardown_ewmh(void)
 {
 	int				i, num_screens;
@@ -2519,7 +2547,7 @@ teardown_ewmh(void)
 	}
 }
 
-void
+static void
 ewmh_get_window_type(struct ws_win *win)
 {
 	xcb_get_property_reply_t	*r;
@@ -2544,7 +2572,7 @@ ewmh_get_window_type(struct ws_win *win)
 	free(r);
 }
 
-void
+static void
 ewmh_print_window_type(uint32_t type)
 {
 	int		i;
@@ -2559,7 +2587,7 @@ ewmh_print_window_type(uint32_t type)
 			DPRINTF("%s ", ewmh_window_types[i].name);
 }
 
-void
+static void
 ewmh_update_actions(struct ws_win *win)
 {
 	xcb_atom_t		action[SWM_EWMH_ACTION_COUNT_MAX];
@@ -2697,7 +2725,7 @@ ewmh_apply_flags(struct ws_win *win, uint32_t pending)
 	return (changed);
 }
 
-void
+static void
 ewmh_update_wm_state(struct  ws_win *win) {
 	xcb_atom_t		vals[SWM_EWMH_ACTION_COUNT_MAX];
 	int			n = 0;
@@ -2730,7 +2758,7 @@ ewmh_update_wm_state(struct  ws_win *win) {
 		xcb_delete_property(conn, win->id, ewmh[_NET_WM_STATE].atom);
 }
 
-void
+static void
 print_strut(struct swm_strut *st)
 {
 	if (st == NULL)
@@ -2745,7 +2773,7 @@ print_strut(struct swm_strut *st)
 	    st->bottom_end_x);
 }
 
-void
+static void
 ewmh_get_strut(struct ws_win *win)
 {
 	xcb_get_property_cookie_t	c;
@@ -2910,7 +2938,7 @@ refresh_strut(struct swm_screen *s)
 	return (changed);
 }
 
-void
+static void
 ewmh_get_wm_state(struct ws_win *win)
 {
 	xcb_atom_t			*states;
@@ -2958,7 +2986,7 @@ ewmh_update_active_window(struct swm_screen *s)
 	}
 }
 
-void
+static void
 dumpwins(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct workspace			*ws;
@@ -3006,7 +3034,7 @@ dumpwins(struct swm_screen *s, struct binding *bp, union arg *args)
 	print_stacking(s);
 }
 
-void
+static void
 print_stackable(struct swm_stackable *st)
 {
 	struct ws_win		*w;
@@ -3039,7 +3067,7 @@ print_stackable(struct swm_stackable *st)
 	}
 }
 
-void
+static void
 print_stacking(struct swm_screen *s)
 {
 	struct swm_stackable	*st;
@@ -3050,7 +3078,7 @@ print_stacking(struct swm_screen *s)
 	DPRINTF("=================================\n");
 }
 
-void
+static void
 debug_toggle(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	int			num_screens, i;
@@ -3074,7 +3102,7 @@ debug_toggle(struct swm_screen *s, struct binding *bp, union arg *args)
 }
 
 #define DEBUG_MAXROWS		(3)
-void
+static void
 debug_refresh(struct ws_win *win)
 {
 	struct swm_screen	*s;
@@ -3250,7 +3278,7 @@ debug_refresh(struct ws_win *win)
 	}
 }
 
-void
+static void
 update_debug(struct swm_screen *s)
 {
 	struct ws_win		*w;
@@ -3262,7 +3290,7 @@ update_debug(struct swm_screen *s)
 		debug_refresh(w);
 }
 
-void
+static void
 sighdlr(int sig)
 {
 	int			saved_errno, status;
@@ -3306,7 +3334,7 @@ sighdlr(int sig)
 	errno = saved_errno;
 }
 
-struct pid_e *
+static struct pid_e *
 find_pid(pid_t pid)
 {
 	struct pid_e		*p = NULL;
@@ -3336,7 +3364,7 @@ color_to_rgb(struct swm_color *color)
 	return (name);
 }
 
-int
+static int
 parse_color(struct swm_screen *s, const char *name, struct swm_color *color)
 {
 	char				cname[32] = "#";
@@ -3603,7 +3631,7 @@ getcolorxft(struct swm_screen *s, int c, int i)
 
 }
 
-void
+static void
 fancy_stacker(struct workspace *ws)
 {
 	if (ws->cur_layout->l_stack == vertical_stack)
@@ -3620,7 +3648,7 @@ fancy_stacker(struct workspace *ws)
 		strlcpy(ws->stacker, "[   ]", ws->stacker_len);
 }
 
-void
+static void
 plain_stacker(struct workspace *ws)
 {
 	if (ws->cur_layout->l_stack == vertical_stack)
@@ -3637,7 +3665,7 @@ plain_stacker(struct workspace *ws)
 		strlcpy(ws->stacker, stack_mark_max, ws->stacker_len);
 }
 
-void
+static void
 socket_setnonblock(int fd)
 {
 	int			flags;
@@ -3649,7 +3677,7 @@ socket_setnonblock(int fd)
 		err(1, "fcntl F_SETFL");
 }
 
-void
+static void
 bar_print_legacy(struct swm_region *r, const char *s)
 {
 	xcb_rectangle_t		rect;
@@ -3714,7 +3742,7 @@ bar_print_legacy(struct swm_region *r, const char *s)
 	    0, 0, WIDTH(r->bar), HEIGHT(r->bar));
 }
 
-void
+static void
 bar_print(struct swm_region *r, const char *s)
 {
 	size_t				len;
@@ -3771,7 +3799,7 @@ bar_print(struct swm_region *r, const char *s)
 	    HEIGHT(r->bar) + 2 * bar_border_width);
 }
 
-void
+static void
 bar_print_layout(struct swm_region *r)
 {
 	struct text_fragment	*frag;
@@ -3971,7 +3999,7 @@ bar_print_layout(struct swm_region *r)
 	    HEIGHT(r->bar) + 2 * bar_border_width);
 }
 
-void
+static void
 bar_extra_stop(void)
 {
 	if (bar_pid) {
@@ -4137,7 +4165,7 @@ bar_urgent(struct swm_screen *s, char *str, size_t sz)
 		str[strlen(str) - 1] = '\0';
 }
 
-void
+static void
 bar_workspace_indicator(char *s, size_t sz, struct swm_region *r)
 {
 	struct ws_win		*w;
@@ -4242,7 +4270,7 @@ bar_workspace_name(char *s, size_t sz, struct workspace *ws, size_t *n)
 }
 
 /* build the default bar format according to the defined enabled options */
-void
+static void
 bar_fmt(const char *fmtexp, char *fmtnew, struct swm_region *r, size_t sz)
 {
 	struct ws_win		*w;
@@ -4318,7 +4346,7 @@ bar_replace_pad(char *tmp, size_t *limit, size_t sz)
 }
 
 /* replaces the bar format character sequences (like in tmux(1)) */
-char *
+static char *
 bar_replace_seq(char *fmt, char *fmtrep, struct swm_region *r, size_t *offrep,
     size_t sz)
 {
@@ -4479,7 +4507,7 @@ bar_replace_seq(char *fmt, char *fmtrep, struct swm_region *r, size_t *offrep,
 	return (cur);
 }
 
-void
+static void
 bar_replace_action(char *fmt, char *fmtact, struct swm_region *r, size_t sz)
 {
 	size_t		off;
@@ -4538,7 +4566,7 @@ bar_strlcat_esc(char *dst, char *src, size_t sz, size_t *n)
 	*dst = '\0';
 }
 
-void
+static void
 bar_replace(char *fmt, char *fmtrep, struct swm_region *r, size_t sz)
 {
 	size_t		off;
@@ -4574,7 +4602,7 @@ bar_replace(char *fmt, char *fmtrep, struct swm_region *r, size_t sz)
 	fmtrep[off] = '\0';
 }
 
-void
+static void
 bar_split_format(char *format)
 {
 	char *src, *dst;
@@ -4706,7 +4734,7 @@ scan_markup(struct swm_screen *s, char *f, int *n, size_t *size)
 	return false;
 }
 
-int
+static int
 get_character_font(struct swm_screen *s, FcChar32 c, int pref)
 {
 	int			i;
@@ -4742,7 +4770,7 @@ get_character_font(struct swm_screen *s, FcChar32 c, int pref)
 	return (0);
 }
 
-void
+static void
 bar_parse_markup(struct swm_screen *s, struct bar_section *sect)
 {
 	XRectangle		ibox, lbox;
@@ -4859,7 +4887,7 @@ bar_parse_markup(struct swm_screen *s, struct bar_section *sect)
 	sect->nfrags = i;
 }
 
-void
+static void
 bar_fmt_expand(char *fmtexp, size_t sz)
 {
 	char			*fmt = NULL;
@@ -4901,7 +4929,7 @@ update_bars(struct swm_screen *s)
 		bar_draw(r->bar);
 }
 
-void
+static void
 bar_draw(struct swm_bar *bar)
 {
 	struct swm_region	*r;
@@ -4953,7 +4981,7 @@ bar_draw(struct swm_bar *bar)
  * Reads external script output; call when stdin is readable.
  * Returns 1 if bar_ext was updated; otherwise 0.
  */
-int
+static int
 bar_extra_update(void)
 {
 	size_t		len;
@@ -4997,7 +5025,7 @@ bar_extra_update(void)
 	return (changed);
 }
 
-void
+static void
 bar_toggle(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct swm_region	*r;
@@ -5044,7 +5072,7 @@ bar_toggle(struct swm_screen *s, struct binding *bp, union arg *args)
 	flush();
 }
 
-void
+static void
 bar_extra_setup(void)
 {
 	int		fd, bar_pipe[2];
@@ -5107,7 +5135,7 @@ bar_extra_setup(void)
 	}
 }
 
-void
+static void
 kill_bar_extra_atexit(void)
 {
 	if (bar_pid)
@@ -5127,7 +5155,7 @@ isxlfd(char *s)
 	return (count == 14);
 }
 
-int
+static int
 fontset_init(void)
 {
 	char			*default_string;
@@ -5178,7 +5206,7 @@ fontset_init(void)
 	return (0);
 }
 
-int
+static int
 xft_init(struct swm_screen *s)
 {
 	struct swm_color	*c;
@@ -5253,7 +5281,7 @@ xft_init(struct swm_screen *s)
 	return (0);
 }
 
-void
+static void
 setup_fonts(void)
 {
 	int	i, num_screens;
@@ -5348,7 +5376,7 @@ setup_fonts(void)
 	}
 }
 
-void
+static void
 bar_setup(struct swm_region *r)
 {
 	struct swm_screen	*s;
@@ -5470,7 +5498,7 @@ bar_cleanup(struct swm_region *r)
 	r->bar = NULL;
 }
 
-void
+static void
 setup_marks(void)
 {
 	struct workspace	*ws;
@@ -5511,7 +5539,7 @@ setup_marks(void)
 		}
 }
 
-void
+static void
 set_win_state(struct ws_win *win, uint32_t state)
 {
 	uint32_t		data[2] = { state, XCB_WINDOW_NONE };
@@ -5527,7 +5555,7 @@ set_win_state(struct ws_win *win, uint32_t state)
 	    a_state, 32, 2, data);
 }
 
-uint32_t
+static uint32_t
 get_win_state(xcb_window_t w)
 {
 	xcb_get_property_reply_t	*r;
@@ -5545,7 +5573,7 @@ get_win_state(xcb_window_t w)
 	return (result);
 }
 
-void
+static void
 version(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	int		i, num_screens;
@@ -5568,7 +5596,7 @@ version(struct swm_screen *s, struct binding *bp, union arg *args)
 	xcb_flush(conn);
 }
 
-void
+static void
 client_msg(struct ws_win *win, xcb_atom_t a, xcb_timestamp_t t)
 {
 	xcb_client_message_event_t	ev;
@@ -5592,7 +5620,7 @@ client_msg(struct ws_win *win, xcb_atom_t a, xcb_timestamp_t t)
 }
 
 /* synthetic response to a ConfigureRequest when not making a change */
-void
+static void
 config_win(struct ws_win *win, xcb_configure_request_event_t *ev)
 {
 	xcb_configure_notify_event_t ce;
@@ -5672,7 +5700,7 @@ config_win(struct ws_win *win, xcb_configure_request_event_t *ev)
 	    (char *)&ce);
 }
 
-int
+static int
 count_win(struct workspace *ws, uint32_t flags)
 {
 	struct ws_win		*win;
@@ -5693,7 +5721,7 @@ count_win(struct workspace *ws, uint32_t flags)
 	return (count);
 }
 
-void
+static void
 quit(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	/* Suppress warning. */
@@ -5705,7 +5733,7 @@ quit(struct swm_screen *s, struct binding *bp, union arg *args)
 	running = 0;
 }
 
-void
+static void
 prioritize_window(struct ws_win *win)
 {
 
@@ -5722,7 +5750,7 @@ clear_stack(struct swm_screen *s)
 }
 
 /* Updates current stacking order with all rules/priorities/etc. */
-void
+static void
 refresh_stack(struct swm_screen *s)
 {
 	struct swm_region	*r;
@@ -5765,7 +5793,7 @@ refresh_stack(struct swm_screen *s)
 	}
 }
 
-void
+static void
 update_win_layer_related(struct ws_win *win)
 {
 	struct ws_win		*w;
@@ -5778,7 +5806,7 @@ update_win_layer_related(struct ws_win *win)
 }
 
 /* Caution: update main windows first before descendents. */
-void
+static void
 update_win_layer(struct ws_win *win)
 {
 	enum swm_layer	layer;
@@ -5809,7 +5837,7 @@ update_win_layer(struct ws_win *win)
 	win->st->layer = layer;
 }
 
-void
+static void
 update_stackable(struct swm_stackable *st, struct swm_stackable *st_sib)
 {
 	uint32_t		val[2];
@@ -5827,7 +5855,7 @@ update_stackable(struct swm_stackable *st, struct swm_stackable *st_sib)
 	    XCB_CONFIG_WINDOW_SIBLING | XCB_CONFIG_WINDOW_STACK_MODE, val);
 }
 
-void
+static void
 map_window(struct ws_win *win)
 {
 	if (win == NULL)
@@ -5854,7 +5882,7 @@ map_window(struct ws_win *win)
 	set_win_state(win, XCB_ICCCM_WM_STATE_NORMAL);
 }
 
-void
+static void
 unmap_window(struct ws_win *win)
 {
 	if (win == NULL)
@@ -5881,7 +5909,7 @@ unmap_window(struct ws_win *win)
 	set_win_state(win, XCB_ICCCM_WM_STATE_ICONIC);
 }
 
-void
+static void
 fake_keypress(struct ws_win *win, xcb_keysym_t keysym, uint16_t modifiers)
 {
 	xcb_key_press_event_t	event;
@@ -5918,7 +5946,7 @@ fake_keypress(struct ws_win *win, xcb_keysym_t keysym, uint16_t modifiers)
 	free(keycode);
 }
 
-void
+static void
 restart(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	/* Suppress warning. */
@@ -5950,7 +5978,7 @@ follow_pointer(struct swm_screen *s, unsigned int type)
 	return (result);
 }
 
-struct swm_region *
+static struct swm_region *
 get_pointer_region(struct swm_screen *s)
 {
 	struct swm_region		*r = NULL;
@@ -5978,7 +6006,7 @@ get_pointer_region(struct swm_screen *s)
 	return (r);
 }
 
-struct ws_win *
+static struct ws_win *
 get_pointer_win(struct swm_screen *s)
 {
 	struct ws_win			*win = NULL;
@@ -5996,7 +6024,7 @@ get_pointer_win(struct swm_screen *s)
 	return (win);
 }
 
-void
+static void
 center_pointer(struct swm_region *r)
 {
 	struct ws_win			*win;
@@ -6039,7 +6067,7 @@ center_pointer(struct swm_region *r)
 #endif
 }
 
-xcb_window_t
+static xcb_window_t
 get_input_focus(void)
 {
 	xcb_window_t			id = XCB_WINDOW_NONE;
@@ -6056,7 +6084,7 @@ get_input_focus(void)
 	return (id);
 }
 
-struct swm_region *
+static struct swm_region *
 get_current_region(struct swm_screen *s)
 {
 	struct swm_region		*r;
@@ -6087,7 +6115,7 @@ get_current_region(struct swm_screen *s)
 	return (r);
 }
 
-struct swm_region *
+static struct swm_region *
 find_region(xcb_window_t id)
 {
 	struct swm_region	*r;
@@ -6105,7 +6133,7 @@ find_region(xcb_window_t id)
 	return (NULL);
 }
 
-struct swm_screen *
+static struct swm_screen *
 find_screen(xcb_window_t id)
 {
 	int			i, num_screens;
@@ -6121,7 +6149,7 @@ find_screen(xcb_window_t id)
 	return (NULL);
 }
 
-struct swm_bar *
+static struct swm_bar *
 find_bar(xcb_window_t id)
 {
 	struct swm_region	*r;
@@ -6139,7 +6167,7 @@ find_bar(xcb_window_t id)
 	return (NULL);
 }
 
-struct ws_win *
+static struct ws_win *
 find_window(xcb_window_t id)
 {
 	struct ws_win		*win = NULL;
@@ -6257,7 +6285,7 @@ spawn(int ws_idx, union arg *args, unsigned int flags)
 }
 
 /* Cleanup all traces of a (possibly invalid) window pointer. */
-void
+static void
 kill_refs(struct ws_win *win)
 {
 	struct workspace	*ws;
@@ -6292,7 +6320,7 @@ kill_refs(struct ws_win *win)
 }
 
 /* Check if window pointer is still valid. */
-int
+static int
 validate_win(struct ws_win *testwin)
 {
 	struct ws_win		*win;
@@ -6310,7 +6338,7 @@ validate_win(struct ws_win *testwin)
 }
 
 /* Check if workspace pointer is still valid. */
-int
+static int
 validate_ws(struct workspace *testws)
 {
 	struct workspace	*ws;
@@ -6324,7 +6352,7 @@ validate_ws(struct workspace *testws)
 	return (1);
 }
 
-void
+static void
 unfocus_win(struct ws_win *win)
 {
 	bool			raise = false;
@@ -6403,7 +6431,7 @@ win_noinput(struct ws_win *win)
 	return (!accepts_focus(win) && !win->take_focus);
 }
 
-void
+static void
 focus_win_input(struct ws_win *win, bool force_input)
 {
 	/* Set input focus if no input hint, or indicated by hint. */
@@ -6417,7 +6445,7 @@ focus_win_input(struct ws_win *win, bool force_input)
 		client_msg(win, a_takefocus, event_time);
 }
 
-void
+static void
 set_input_focus(xcb_window_t winid, bool force)
 {
 	if (force) {
@@ -6434,7 +6462,7 @@ set_input_focus(xcb_window_t winid, bool force)
 }
 
 /* Focus a window all in one go. */
-void
+static void
 focus_win(struct swm_screen *s, struct ws_win *win)
 {
 	struct ws_win		*w;
@@ -6464,7 +6492,7 @@ focus_win(struct swm_screen *s, struct ws_win *win)
 }
 
 /* Apply follow mode focus policy. */
-void
+static void
 focus_follow(struct swm_screen *s, struct swm_region *r, struct ws_win *win)
 {
 	struct swm_region	*rr;
@@ -6488,7 +6516,7 @@ focus_follow(struct swm_screen *s, struct swm_region *r, struct ws_win *win)
 	xcb_flush(conn);
 }
 
-void
+static void
 grab_buttons_win(xcb_window_t win)
 {
 	struct binding		*bp;
@@ -6544,7 +6572,7 @@ grab_buttons_win(xcb_window_t win)
 }
 
 /* If a transient window should have focus instead, return it. */
-struct ws_win *
+static struct ws_win *
 get_focus_magic(struct ws_win *win)
 {
 	struct ws_win	*winfocus = NULL;
@@ -6577,7 +6605,7 @@ get_focus_magic(struct ws_win *win)
 	return (winfocus);
 }
 
-void
+static void
 set_focus(struct swm_screen *s, struct ws_win *win)
 {
 	struct ws_win		*w;
@@ -6607,7 +6635,7 @@ set_focus(struct swm_screen *s, struct ws_win *win)
 	set_focus_redirect(win);
 }
 
-void
+static void
 set_focus_prev(struct ws_win *win)
 {
 	struct ws_win		*w;
@@ -6628,7 +6656,7 @@ set_focus_prev(struct ws_win *win)
 	}
 }
 
-void
+static void
 update_focus(struct swm_screen *s)
 {
 	struct ws_win				*win, *cfw = NULL;
@@ -6703,7 +6731,7 @@ update_focus(struct swm_screen *s)
 	ewmh_update_active_window(s);
 }
 
-void
+static void
 set_region(struct swm_region *r)
 {
 	struct swm_region	*rf;
@@ -6738,7 +6766,7 @@ set_region(struct swm_region *r)
 	ewmh_update_current_desktop(r->s);
 }
 
-void
+static void
 focus_region(struct swm_region *r)
 {
 	struct ws_win		*nfw;
@@ -6783,7 +6811,7 @@ focus_region(struct swm_region *r)
 #define SWM_MODE_INVERTED	(SWM_MODE_VFLIP | SWM_MODE_HFLIP)
 #define SWM_MODE_RIGHT		(SWM_MODE_HFLIP)
 
-struct rotation_mode {
+static struct rotation_mode {
 	uint16_t	r;
 	uint8_t		mode;
 } rotation_map[] = {
@@ -6793,7 +6821,7 @@ struct rotation_mode {
 	{ XCB_RANDR_ROTATION_ROTATE_270,	SWM_MODE_RIGHT },
 };
 
-void
+static void
 rotatews(struct workspace *ws, uint16_t rot)
 {
 	int		i, j, d;
@@ -6946,7 +6974,7 @@ switch_workspace(struct swm_region *r, struct workspace *ws, bool noclamp,
 	DNPRINTF(SWM_D_WS, "done\n");
 }
 
-void
+static void
 switchws(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct swm_region	*r;
@@ -6964,7 +6992,7 @@ switchws(struct swm_screen *s, struct binding *bp, union arg *args)
 	DNPRINTF(SWM_D_WS, "done\n");
 }
 
-void
+static void
 cyclews(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct swm_region	*r, *rr;
@@ -7085,7 +7113,7 @@ cyclews(struct swm_screen *s, struct binding *bp, union arg *args)
 	DNPRINTF(SWM_D_FOCUS, "done\n");
 }
 
-void
+static void
 unmap_workspace(struct workspace *ws)
 {
 	struct ws_win	*w;
@@ -7097,7 +7125,7 @@ unmap_workspace(struct workspace *ws)
 		unmap_window(w);
 }
 
-void
+static void
 emptyws(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct swm_region	*r;
@@ -7143,7 +7171,7 @@ emptyws(struct swm_screen *s, struct binding *bp, union arg *args)
 	DNPRINTF(SWM_D_FOCUS, "done\n");
 }
 
-void
+static void
 priorws(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct swm_region	*r;
@@ -7151,7 +7179,6 @@ priorws(struct swm_screen *s, struct binding *bp, union arg *args)
 	/* Suppress warning. */
 	(void)bp;
 	(void)args;
-
 
 	if ((r = get_current_region(s)) == NULL)
 		return;
@@ -7167,7 +7194,7 @@ priorws(struct swm_screen *s, struct binding *bp, union arg *args)
 	DNPRINTF(SWM_D_FOCUS, "done\n");
 }
 
-void
+static void
 focusrg(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct swm_region	*r;
@@ -7185,7 +7212,7 @@ focusrg(struct swm_screen *s, struct binding *bp, union arg *args)
 	DNPRINTF(SWM_D_FOCUS, "done\n");
 }
 
-void
+static void
 cyclerg(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct swm_region	*r, *rr = NULL;
@@ -7243,7 +7270,7 @@ cyclerg(struct swm_screen *s, struct binding *bp, union arg *args)
 	DNPRINTF(SWM_D_FOCUS, "done\n");
 }
 
-void
+static void
 swapwin(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct swm_region	*r;
@@ -7344,7 +7371,7 @@ swapwin(struct swm_screen *s, struct binding *bp, union arg *args)
 }
 
 /* Determine focus other than specified window, but on the same workspace. */
-struct ws_win *
+static struct ws_win *
 get_focus_other(struct ws_win *win)
 {
 	struct ws_win		*w, *winfocus = NULL;
@@ -7463,7 +7490,7 @@ done:
 	return (winfocus);
 }
 
-struct ws_win *
+static struct ws_win *
 get_ws_focus_prev(struct workspace *ws)
 {
 	struct ws_win	*w;
@@ -7476,7 +7503,7 @@ get_ws_focus_prev(struct workspace *ws)
 	return (w);
 }
 
-struct ws_win *
+static struct ws_win *
 get_ws_focus(struct workspace *ws)
 {
 	struct ws_win		*winfocus = NULL;
@@ -7493,7 +7520,7 @@ get_ws_focus(struct workspace *ws)
 }
 
 /* Return the 'main' window in specified workspace. */
-struct ws_win *
+static struct ws_win *
 get_main_window(struct workspace *ws)
 {
 	struct ws_win		*mwin = NULL;
@@ -7521,7 +7548,7 @@ get_main_window(struct workspace *ws)
 	return (mwin);
 }
 
-void
+static void
 focus(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct swm_region	*r;
@@ -7687,7 +7714,7 @@ out:
 	DNPRINTF(SWM_D_FOCUS, "done\n");
 }
 
-void
+static void
 focus_pointer(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct ws_win		*win;
@@ -7705,7 +7732,7 @@ focus_pointer(struct swm_screen *s, struct binding *bp, union arg *args)
 	}
 }
 
-void
+static void
 switchlayout(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct layout		*new_layout = NULL;
@@ -7816,7 +7843,7 @@ out:
 	DNPRINTF(SWM_D_FOCUS, "done\n");
 }
 
-void
+static void
 stack_config(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct swm_region	*r;
@@ -7850,7 +7877,7 @@ stack_config(struct swm_screen *s, struct binding *bp, union arg *args)
 	flush();
 }
 
-void
+static void
 stack(struct swm_region *r) {
 	struct swm_geometry	g;
 
@@ -7886,7 +7913,7 @@ stack(struct swm_region *r) {
 	DNPRINTF(SWM_D_STACK, "end\n");
 }
 
-void
+static void
 store_float_geom(struct ws_win *win)
 {
 	struct swm_region	*r;
@@ -7916,7 +7943,7 @@ store_float_geom(struct ws_win *win)
 	    win->g_floatref.y, win->g_floatref.w, win->g_floatref.h);
 }
 
-void
+static void
 load_float_geom(struct ws_win *win)
 {
 	if (win == NULL)
@@ -7936,7 +7963,7 @@ load_float_geom(struct ws_win *win)
 	    win->g_floatref_root);
 }
 
-void
+static void
 update_floater(struct ws_win *win)
 {
 	struct workspace	*ws;
@@ -8051,7 +8078,7 @@ update_floater(struct ws_win *win)
  * Send keystrokes to terminal to decrease/increase the font size as the
  * window size changes.
  */
-void
+static void
 adjust_font(struct ws_win *win)
 {
 	if (!(win->quirks & SWM_Q_XTERM_FONTADJ) ||
@@ -8081,7 +8108,7 @@ adjust_font(struct ws_win *win)
 	tmp = (g)->y; (g)->y = (g)->x; (g)->x = tmp;	\
 	tmp = (g)->h; (g)->h = (g)->w; (g)->w = tmp;	\
 } while (0)
-void
+static void
 stack_master(struct workspace *ws, struct swm_geometry *g, int rot, bool flip)
 {
 	struct swm_geometry	cell, r_g = *g;
@@ -8291,7 +8318,7 @@ stack_master(struct workspace *ws, struct swm_geometry *g, int rot, bool flip)
 	DNPRINTF(SWM_D_STACK, "done\n");
 }
 
-void
+static void
 vertical_config(struct workspace *ws, int id)
 {
 	DNPRINTF(SWM_D_STACK, "id: %d, workspace: %d\n", id, ws->idx);
@@ -8337,7 +8364,7 @@ vertical_config(struct workspace *ws, int id)
 	}
 }
 
-void
+static void
 vertical_stack(struct workspace *ws, struct swm_geometry *g)
 {
 	DNPRINTF(SWM_D_STACK, "workspace: %d\n", ws->idx);
@@ -8345,7 +8372,7 @@ vertical_stack(struct workspace *ws, struct swm_geometry *g)
 	stack_master(ws, g, 0, ws->l_state.vertical_flip);
 }
 
-void
+static void
 horizontal_config(struct workspace *ws, int id)
 {
 	DNPRINTF(SWM_D_STACK, "workspace: %d\n", ws->idx);
@@ -8391,7 +8418,7 @@ horizontal_config(struct workspace *ws, int id)
 	}
 }
 
-void
+static void
 horizontal_stack(struct workspace *ws, struct swm_geometry *g)
 {
 	DNPRINTF(SWM_D_STACK, "workspace: %d\n", ws->idx);
@@ -8399,7 +8426,7 @@ horizontal_stack(struct workspace *ws, struct swm_geometry *g)
 	stack_master(ws, g, 1, ws->l_state.horizontal_flip);
 }
 
-void
+static void
 floating_stack(struct workspace *ws, struct swm_geometry *g)
 {
 	struct ws_win		*w;
@@ -8416,7 +8443,7 @@ floating_stack(struct workspace *ws, struct swm_geometry *g)
 	}
 }
 
-void
+static void
 max_config(struct workspace *ws, int id)
 {
 	struct swm_screen	*s = NULL;
@@ -8448,7 +8475,7 @@ max_config(struct workspace *ws, int id)
 }
 
 /* Single-tiled layout. */
-void
+static void
 max_stack(struct workspace *ws, struct swm_geometry *g)
 {
 	struct ws_win		*w;
@@ -8490,7 +8517,7 @@ max_stack(struct workspace *ws, struct swm_geometry *g)
 	}
 }
 
-void
+static void
 update_layout(struct swm_screen *s)
 {
 	struct swm_region	*r;
@@ -8501,7 +8528,7 @@ update_layout(struct swm_screen *s)
 		stack(r);
 }
 
-void
+static void
 update_stacking(struct swm_screen *s)
 {
 	struct swm_stackable	*st, *st_prev;
@@ -8515,7 +8542,7 @@ update_stacking(struct swm_screen *s)
 	update_debug(s);
 }
 
-void
+static void
 update_region_mapping(struct swm_region *r)
 {
 	struct ws_win		*w, *wf;
@@ -8544,7 +8571,7 @@ update_region_mapping(struct swm_region *r)
 			unmap_window(w);
 }
 
-void
+static void
 update_mapping(struct swm_screen *s)
 {
 	struct swm_region	*r;
@@ -8555,7 +8582,7 @@ update_mapping(struct swm_screen *s)
 		update_region_mapping(r);
 }
 
-void
+static void
 transfer_win(struct ws_win *win, struct workspace *ws)
 {
 	struct swm_screen	*s;
@@ -8616,7 +8643,7 @@ transfer_win(struct ws_win *win, struct workspace *ws)
 	}
 }
 
-void
+static void
 send_to_rg(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct swm_region	*r;
@@ -8638,7 +8665,7 @@ send_to_rg(struct swm_screen *s, struct binding *bp, union arg *args)
 	transfer_win(win, r->ws);
 }
 
-struct swm_region *
+static struct swm_region *
 region_under(struct swm_screen *s, int x, int y)
 {
 	struct swm_region	*r;
@@ -8654,7 +8681,7 @@ region_under(struct swm_screen *s, int x, int y)
 }
 
 /* Transfer focused window to target workspace and focus. */
-void
+static void
 send_to_ws(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct workspace	*ws;
@@ -8676,7 +8703,7 @@ send_to_ws(struct swm_screen *s, struct binding *bp, union arg *args)
 }
 
 /* Transfer focused window to region-relative workspace and focus. */
-void
+static void
 send_to_rg_relative(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct ws_win		*win;
@@ -8729,7 +8756,7 @@ update_win_refs(struct ws_win *win)
 }
 
 /* Determine a window to consider 'main' for specified window. */
-struct ws_win *
+static struct ws_win *
 find_main_window(struct ws_win *win)
 {
 	struct ws_win	*w;
@@ -8756,7 +8783,7 @@ find_main_window(struct ws_win *win)
 	return (w);
 }
 
-void
+static void
 set_focus_redirect(struct ws_win *win)
 {
 	struct ws_win	*w;
@@ -8778,7 +8805,7 @@ set_focus_redirect(struct ws_win *win)
 	win->focus_redirect = NULL; /* Clear any redirect from this window. */
 }
 
-void
+static void
 win_to_ws(struct ws_win *win, struct workspace *nws, uint32_t flags)
 {
 	struct ws_win		*w, *tmpw;
@@ -8840,7 +8867,7 @@ win_to_ws(struct ws_win *win, struct workspace *nws, uint32_t flags)
 	DNPRINTF(SWM_D_MOVE, "done\n");
 }
 
-void
+static void
 pressbutton(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	/* Suppress warning. */
@@ -8853,7 +8880,7 @@ pressbutton(struct swm_screen *s, struct binding *bp, union arg *args)
 	    XCB_CURRENT_TIME, XCB_WINDOW_NONE, 0, 0, 0);
 }
 
-void
+static void
 raise_focus(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct ws_win	*win;
@@ -8875,7 +8902,7 @@ raise_focus(struct swm_screen *s, struct binding *bp, union arg *args)
 	flush();
 }
 
-void
+static void
 raise_toggle(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct swm_region	*r;
@@ -8902,7 +8929,7 @@ raise_toggle(struct swm_screen *s, struct binding *bp, union arg *args)
 	flush();
 }
 
-void
+static void
 iconify(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct swm_region	*r;
@@ -8945,7 +8972,7 @@ iconify(struct swm_screen *s, struct binding *bp, union arg *args)
 		focus_follow(s, s->r_focus, nfw);
 }
 
-char *
+static char *
 get_win_name(xcb_window_t win)
 {
 	char				*name = NULL;
@@ -8978,7 +9005,7 @@ get_win_name(xcb_window_t win)
 	return (name);
 }
 
-void
+static void
 uniconify(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct swm_region	*r;
@@ -9050,7 +9077,7 @@ uniconify(struct swm_screen *s, struct binding *bp, union arg *args)
 	fclose(lfile);
 }
 
-void
+static void
 name_workspace(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct swm_region	*r;
@@ -9076,7 +9103,7 @@ name_workspace(struct swm_screen *s, struct binding *bp, union arg *args)
 	fclose(lfile);
 }
 
-void
+static void
 search_workspace(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct swm_region	*r;
@@ -9110,7 +9137,7 @@ search_workspace(struct swm_screen *s, struct binding *bp, union arg *args)
 	fclose(lfile);
 }
 
-void
+static void
 search_win_cleanup(void)
 {
 	struct search_window	*sw = NULL;
@@ -9123,7 +9150,7 @@ search_win_cleanup(void)
 #endif
 }
 
-int
+static int
 create_search_win(struct ws_win *win, int index)
 {
 	struct search_window	*sw = NULL;
@@ -9206,7 +9233,7 @@ create_search_win(struct ws_win *win, int index)
 	return (0);
 }
 
-void
+static void
 search_win(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct swm_region	*r;
@@ -9271,7 +9298,7 @@ search_win(struct swm_screen *s, struct binding *bp, union arg *args)
 	xcb_flush(conn);
 }
 
-void
+static void
 search_resp_uniconify(const char *resp, size_t len)
 {
 	char			*name;
@@ -9351,7 +9378,7 @@ search_resp_uniconify(const char *resp, size_t len)
 	}
 }
 
-void
+static void
 search_resp_name_workspace(const char *resp, size_t len)
 {
 	struct workspace	*ws;
@@ -9380,7 +9407,7 @@ search_resp_name_workspace(const char *resp, size_t len)
 	update_bars(search_r->s);
 }
 
-void
+static void
 ewmh_update_desktop_names(struct swm_screen *s)
 {
 	struct workspace	*ws;
@@ -9416,7 +9443,7 @@ ewmh_update_desktop_names(struct swm_screen *s)
 	free(name_list);
 }
 
-void
+static void
 ewmh_get_desktop_names(struct swm_screen *s)
 {
 	struct workspace		*ws;
@@ -9452,7 +9479,7 @@ ewmh_get_desktop_names(struct swm_screen *s)
 	free(gpr);
 }
 
-void
+static void
 ewmh_update_client_list(struct swm_screen *s)
 {
 	struct ws_win		*w;
@@ -9481,7 +9508,7 @@ ewmh_update_client_list(struct swm_screen *s)
 	free(wins);
 }
 
-void
+static void
 ewmh_update_current_desktop(struct swm_screen *s)
 {
 	struct swm_region	*r;
@@ -9517,7 +9544,7 @@ ewmh_update_desktop_viewports(struct swm_screen *s)
 	    ewmh[_NET_DESKTOP_VIEWPORT].atom, XCB_ATOM_CARDINAL, 32, 2, &vals);
 }
 
-void
+static void
 ewmh_update_workarea(struct swm_screen *s)
 {
 	int			i;
@@ -9544,7 +9571,7 @@ ewmh_update_workarea(struct swm_screen *s)
 	free(vals);
 }
 
-void
+static void
 search_resp_search_workspace(const char *resp)
 {
 	struct workspace	*ws;
@@ -9575,7 +9602,7 @@ search_resp_search_workspace(const char *resp)
 		    follow_mode(SWM_FOCUS_TYPE_WORKSPACE));
 }
 
-void
+static void
 search_resp_search_window(const char *resp)
 {
 	char			*s, *p;
@@ -9609,7 +9636,7 @@ search_resp_search_window(const char *resp)
 
 #define MAX_RESP_LEN	1024
 
-void
+static void
 search_do_resp(void)
 {
 	ssize_t			rbytes;
@@ -9667,7 +9694,7 @@ done:
 	DNPRINTF(SWM_D_MISC, "done\n");
 }
 
-void
+static void
 wkill(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	(void)bp;
@@ -9687,7 +9714,7 @@ wkill(struct swm_screen *s, struct binding *bp, union arg *args)
 }
 
 /* Apply unfocus conditions on windows in workspace unrelated to win. */
-int
+static int
 apply_unfocus(struct workspace *ws, struct ws_win *win)
 {
 	struct ws_win		*w;
@@ -9773,7 +9800,7 @@ out:
 	return (count);
 }
 
-void
+static void
 free_toggle(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct swm_region	*r;
@@ -9823,7 +9850,7 @@ free_toggle(struct swm_screen *s, struct binding *bp, union arg *args)
 	flush();
 }
 
-void
+static void
 maximize_toggle(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct swm_region	*r;
@@ -9872,7 +9899,7 @@ maximize_toggle(struct swm_screen *s, struct binding *bp, union arg *args)
 	DNPRINTF(SWM_D_MISC, "done\n");
 }
 
-void
+static void
 floating_toggle(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct swm_region	*r;
@@ -9932,7 +9959,7 @@ floating_toggle(struct swm_screen *s, struct binding *bp, union arg *args)
 	DNPRINTF(SWM_D_MISC, "done\n");
 }
 
-void
+static void
 fullscreen_toggle(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct ws_win		*win;
@@ -9967,7 +9994,7 @@ fullscreen_toggle(struct swm_screen *s, struct binding *bp, union arg *args)
 	DNPRINTF(SWM_D_MISC, "done\n");
 }
 
-void
+static void
 below_toggle(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct ws_win		*win;
@@ -10004,7 +10031,7 @@ bounds_intersect(struct swm_geometry *b1, struct swm_geometry *b2)
 	    b1->y + b1->h < b2->y || b1->y > b2->y + b2->h));
 }
 
-struct swm_geometry
+static struct swm_geometry
 get_boundary(struct ws_win *win)
 {
 	if (win->ws->r) {
@@ -10116,7 +10143,7 @@ constrain_window(struct ws_win *win, struct swm_geometry *b, uint32_t *opts)
 	}
 }
 
-void
+static void
 draw_frame(struct ws_win *win)
 {
 	xcb_point_t		points[5];
@@ -10179,7 +10206,7 @@ draw_frame(struct ws_win *win)
 	    points);
 }
 
-void
+static void
 update_window(struct ws_win *win)
 {
 	uint16_t	mask;
@@ -10240,7 +10267,7 @@ struct event {
 };
 STAILQ_HEAD(event_queue, event) events = STAILQ_HEAD_INITIALIZER(events);
 
-xcb_generic_event_t *
+static xcb_generic_event_t *
 get_next_event(bool dowait)
 {
 	struct event		*ep;
@@ -10259,7 +10286,7 @@ get_next_event(bool dowait)
 	return (evt);
 }
 
-void
+static void
 put_back_event(xcb_generic_event_t *evt)
 {
 	struct event	*ep;
@@ -10270,7 +10297,7 @@ put_back_event(xcb_generic_event_t *evt)
 }
 
 /* Peeks at next event to detect auto-repeat. */
-bool
+static bool
 keyrepeating(xcb_key_release_event_t *kre)
 {
 	xcb_generic_event_t	*evt;
@@ -10290,7 +10317,7 @@ keyrepeating(xcb_key_release_event_t *kre)
 	return (false);
 }
 
-bool
+static bool
 keybindreleased(struct binding *bp, xcb_key_release_event_t *kre)
 {
 	if (bp->type == KEYBIND && !keyrepeating(kre) &&
@@ -10302,7 +10329,7 @@ keybindreleased(struct binding *bp, xcb_key_release_event_t *kre)
 
 #define SWM_RESIZE_STEPS	(50)
 
-void
+static void
 resize_win(struct ws_win *win, struct binding *bp, int opt)
 {
 	struct swm_geometry		b;
@@ -10386,7 +10413,7 @@ resize_win(struct ws_win *win, struct binding *bp, int opt)
 	DNPRINTF(SWM_D_EVENT, "done\n");
 }
 
-void
+static void
 resize_win_pointer(struct ws_win *win, struct binding *bp,
     uint32_t x_root, uint32_t y_root, uint32_t dir, bool center)
 {
@@ -10594,7 +10621,7 @@ out:
 	DNPRINTF(SWM_D_EVENT, "done\n");
 }
 
-void
+static void
 resize(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct ws_win		*win = NULL;
@@ -10618,7 +10645,7 @@ resize(struct swm_screen *s, struct binding *bp, union arg *args)
 }
 
 /* Try to set window region based on supplied coordinates or window center. */
-void
+static void
 regionize(struct ws_win *win, int x, int y)
 {
 	struct swm_region *r, *r_orig;
@@ -10708,7 +10735,7 @@ unsnap_win(struct ws_win *win, bool inplace)
 
 #define SWM_MOVE_STEPS	(50)
 
-void
+static void
 move_win(struct ws_win *win, struct binding *bp, int opt)
 {
 	xcb_query_pointer_reply_t	*qpr = NULL;
@@ -10774,7 +10801,7 @@ out:
 	DNPRINTF(SWM_D_EVENT, "done\n");
 }
 
-void
+static void
 move_win_pointer(struct ws_win *win, struct binding *bp, uint32_t x_root,
     uint32_t y_root)
 {
@@ -10933,7 +10960,7 @@ out:
 	DNPRINTF(SWM_D_EVENT, "done\n");
 }
 
-void
+static void
 move(struct swm_screen *s, struct binding *bp, union arg *args)
 {
 	struct ws_win			*win = NULL;
@@ -10962,7 +10989,7 @@ move(struct swm_screen *s, struct binding *bp, union arg *args)
 }
 
 /* action definitions */
-struct action {
+static struct action {
 	char			name[SWM_FUNCNAME_LEN];
 	void			(*func)(struct swm_screen *, struct binding *,
 				    union arg *);
@@ -11113,7 +11140,7 @@ struct action {
 	{ "invalid action",	NULL,		0, {0} },
 };
 
-void
+static void
 update_modkey(uint16_t mod)
 {
 	struct binding		*bp;
@@ -11125,7 +11152,7 @@ update_modkey(uint16_t mod)
 	mod_key = mod;
 }
 
-void
+static void
 update_keycodes(void)
 {
 	if ((cancel_keycode = get_keysym_keycode(cancel_key)) == XCB_NO_SYMBOL)
@@ -11280,7 +11307,7 @@ spawn_custom(struct swm_screen *s, union arg *args, const char *spawn_name)
 	free(real_args);
 }
 
-void
+static void
 spawn_select(struct swm_region *r, union arg *args, const char *spawn_name,
     int *pid)
 {
@@ -11524,7 +11551,7 @@ setspawn(const char *name, const char *args, unsigned int flags)
 	DNPRINTF(SWM_D_SPAWN, "leave\n");
 }
 
-int
+static int
 asopcheck(uint8_t asop, uint8_t allowed, char **emsg)
 {
 	if (!(asop & allowed)) {
@@ -11574,7 +11601,7 @@ cleanopt(char *str)
 	return (str);
 }
 
-struct spawn_flag {
+static struct spawn_flag {
 	char		*name;
 	unsigned int	mask;
 } spawnflags[] = {
@@ -11708,7 +11735,7 @@ setconfspawnflags(uint8_t asop, const char *selector, const char *value,
 	return (0);
 }
 
-int
+static int
 setconfspawn(uint8_t asop, const char *selector, const char *value, int flags,
     char **emsg)
 {
@@ -11743,7 +11770,7 @@ setconfspawn(uint8_t asop, const char *selector, const char *value, int flags,
 	return (0);
 }
 
-void
+static void
 validate_spawns(void)
 {
 	struct binding		*bp;
@@ -11774,7 +11801,7 @@ validate_spawns(void)
 	}
 }
 
-void
+static void
 setup_spawn(void)
 {
 	setconfspawn(SWM_ASOP_BASIC, "lock", "xlock", 0, NULL);
@@ -11826,7 +11853,7 @@ trimopt(char *str)
 /* bindings */
 #define SWM_MODNAME_SIZE	32
 #define SWM_KEY_WS		"\n+ \t"
-int
+static int
 parsebinding(const char *bindstr, uint16_t *mod, enum binding_type *type,
     uint32_t *val, uint32_t *flags, char **emsg)
 {
@@ -11903,7 +11930,7 @@ parsebinding(const char *bindstr, uint16_t *mod, enum binding_type *type,
 	return (0);
 }
 
-char *
+static char *
 strdupsafe(const char *str)
 {
 	if (str == NULL)
@@ -11912,7 +11939,7 @@ strdupsafe(const char *str)
 		return (strdup(str));
 }
 
-int
+static int
 binding_cmp(struct binding *bp1, struct binding *bp2)
 {
 	if (bp1->type < bp2->type)
@@ -11933,7 +11960,7 @@ binding_cmp(struct binding *bp1, struct binding *bp2)
 	return (0);
 }
 
-void
+static void
 binding_insert(uint16_t mod, enum binding_type type, uint32_t val,
     enum actionid aid, uint32_t flags, const char *spawn_name)
 {
@@ -11958,7 +11985,7 @@ binding_insert(uint16_t mod, enum binding_type type, uint32_t val,
 	DNPRINTF(SWM_D_KEY, "leave\n");
 }
 
-struct binding *
+static struct binding *
 binding_lookup(uint16_t mod, enum binding_type type, uint32_t val)
 {
 	struct binding		bp;
@@ -11970,7 +11997,7 @@ binding_lookup(uint16_t mod, enum binding_type type, uint32_t val)
 	return (RB_FIND(binding_tree, &bindings, &bp));
 }
 
-void
+static void
 binding_remove(struct binding *bp)
 {
 	DNPRINTF(SWM_D_KEY, "mod: %u, type: %d, val: %u, action: %s(%d), "
@@ -11984,7 +12011,7 @@ binding_remove(struct binding *bp)
 	DNPRINTF(SWM_D_KEY, "leave\n");
 }
 
-void
+static void
 setbinding(uint16_t mod, enum binding_type type, uint32_t val,
     enum actionid aid, uint32_t flags, const char *spawn_name)
 {
@@ -12005,7 +12032,7 @@ setbinding(uint16_t mod, enum binding_type type, uint32_t val,
 	DNPRINTF(SWM_D_KEY, "leave\n");
 }
 
-int
+static int
 setconfbinding(uint8_t asop, const char *selector, const char *value, int flags,
     char **emsg)
 {
@@ -12062,7 +12089,7 @@ setconfbinding(uint8_t asop, const char *selector, const char *value, int flags,
 
 #define MOD		mod_key
 #define MODSHIFT	mod_key | XCB_MOD_MASK_SHIFT
-void
+static void
 setup_keybindings(void)
 {
 #define BINDKEY(m, k, a)	setbinding(m, KEYBIND, k, a, 0, NULL)
@@ -12200,7 +12227,7 @@ setup_keybindings(void)
 #undef BINDKEYSPAWN
 }
 
-void
+static void
 setup_btnbindings(void)
 {
 	setbinding(ANYMOD, BTNBIND, XCB_BUTTON_INDEX_1, FN_FOCUS,
@@ -12213,7 +12240,7 @@ setup_btnbindings(void)
 #undef MODSHIFT
 #undef MOD
 
-void
+static void
 clear_bindings(void)
 {
 	struct binding		*bp;
@@ -12222,7 +12249,7 @@ clear_bindings(void)
 		binding_remove(bp);
 }
 
-void
+static void
 clear_keybindings(void)
 {
 	struct binding		*bp, *bptmp;
@@ -12234,7 +12261,7 @@ clear_keybindings(void)
 	}
 }
 
-bool
+static bool
 button_has_binding(uint32_t button)
 {
 	struct binding		b, *bp;
@@ -12248,7 +12275,7 @@ button_has_binding(uint32_t button)
 	return (bp && bp->type == BTNBIND && bp->value == button);
 }
 
-int
+static int
 setkeymapping(uint8_t asop, const char *selector, const char *value, int flags,
     char **emsg)
 {
@@ -12281,7 +12308,7 @@ setkeymapping(uint8_t asop, const char *selector, const char *value, int flags,
 	return (0);
 }
 
-void
+static void
 updatenumlockmask(void)
 {
 	unsigned int				i, j;
@@ -12313,7 +12340,7 @@ updatenumlockmask(void)
 	DNPRINTF(SWM_D_MISC, "numlockmask: %#x\n", numlockmask);
 }
 
-xcb_keysym_t
+static xcb_keysym_t
 get_string_keysym(const char *name)
 {
 	KeySym					ks, lks, uks;
@@ -12330,7 +12357,7 @@ get_string_keysym(const char *name)
 	return ((xcb_keysym_t)lks);
 }
 
-xcb_keycode_t
+static xcb_keycode_t
 get_keysym_keycode(xcb_keysym_t ks)
 {
 	const xcb_setup_t			*s;
@@ -12362,7 +12389,7 @@ get_keysym_keycode(xcb_keysym_t ks)
 	return (XCB_NO_SYMBOL);
 }
 
-void
+static void
 grabkeys(void)
 {
 	struct binding		*bp;
@@ -12434,7 +12461,7 @@ grabkeys(void)
 }
 
 #ifdef SWM_XCB_HAS_XINPUT
-const char *
+static const char *
 get_input_event_label(xcb_ge_generic_event_t *ev)
 {
 	char *label;
@@ -12557,7 +12584,7 @@ get_input_event_label(xcb_ge_generic_event_t *ev)
 #endif /* SWM_XCB_HAS_XINPUT */
 
 #if defined(SWM_XCB_HAS_XINPUT) && defined(XCB_INPUT_RAW_BUTTON_PRESS)
-void
+static void
 setup_xinput2(struct swm_screen *s)
 {
 	xcb_void_cookie_t	ck;
@@ -12584,7 +12611,7 @@ setup_xinput2(struct swm_screen *s)
 	}
 }
 
-void
+static void
 rawbuttonpress(xcb_input_raw_button_press_event_t *e)
 {
 	struct swm_screen		*s;
@@ -12641,7 +12668,7 @@ done:
 }
 #endif
 
-void
+static void
 grabbuttons(void)
 {
 	struct ws_win	*w;
@@ -12661,7 +12688,7 @@ grabbuttons(void)
 	DNPRINTF(SWM_D_MOUSE, "done\n");
 }
 
-struct wsi_flag {
+static struct wsi_flag {
 	char *name;
 	uint32_t mask;
 } wsiflags[] = {
@@ -12680,7 +12707,7 @@ struct wsi_flag {
 	{"noindexes", SWM_WSI_NOINDEXES},
 };
 
-int
+static int
 parse_workspace_indicator(const char *str, uint32_t *mode, char **emsg)
 {
 	char			*tmp, *cp, *name;
@@ -12793,7 +12820,7 @@ const char *quirkname[] = {
 
 /* SWM_Q_DELIM: retain '|' for back compat for now (2009-08-11) */
 #define SWM_Q_DELIM		"\n|+ \t"
-int
+static int
 parsequirks(const char *qstr, uint32_t *quirk, int *ws, char **emsg)
 {
 	char			*str, *cp, *name;
@@ -12851,7 +12878,7 @@ parsequirks(const char *qstr, uint32_t *quirk, int *ws, char **emsg)
 	return (0);
 }
 
-void
+static void
 quirk_insert(const char *class, const char *instance, const char *name,
     uint32_t type, uint8_t mode, uint32_t quirk, int ws)
 {
@@ -12904,7 +12931,7 @@ quirk_insert(const char *class, const char *instance, const char *name,
 	DNPRINTF(SWM_D_QUIRK, "leave\n");
 }
 
-void
+static void
 quirk_remove(struct quirk *qp)
 {
 	DNPRINTF(SWM_D_QUIRK, "%s:%s [%u]\n", qp->class, qp->name, qp->quirk);
@@ -12915,7 +12942,7 @@ quirk_remove(struct quirk *qp)
 	DNPRINTF(SWM_D_QUIRK, "leave\n");
 }
 
-void
+static void
 quirk_free(struct quirk *qp)
 {
 	regfree(&qp->regex_class);
@@ -12927,7 +12954,7 @@ quirk_free(struct quirk *qp)
 	free(qp);
 }
 
-void
+static void
 clear_quirks(void)
 {
 	struct quirk		*qp;
@@ -12938,7 +12965,7 @@ clear_quirks(void)
 #endif
 }
 
-void
+static void
 quirk_replace(struct quirk *qp, const char *class, const char *instance,
     const char *name, uint32_t type, uint8_t mode, uint32_t quirk, int ws)
 {
@@ -12985,7 +13012,7 @@ out:
 }
 
 /* Eat '\' in str used to escape square brackets and colon. */
-void
+static void
 unescape_selector(char *str)
 {
 	char *cp;
@@ -13038,7 +13065,7 @@ parse_window_type(const char *str, uint32_t *flags, char **emsg)
 	return (0);
 }
 
-struct focus_type {
+static struct focus_type {
 	char		*name;
 	unsigned int	mask;
 } focustypes[] = {
@@ -13137,7 +13164,7 @@ setconffocusmode(uint8_t asop, const char *selector, const char *value,
 	return (0);
 }
 
-int
+static int
 setconfquirk(uint8_t asop, const char *selector, const char *value, int flags,
     char **emsg)
 {
@@ -13210,7 +13237,7 @@ setconfquirk(uint8_t asop, const char *selector, const char *value, int flags,
 	return (retval);
 }
 
-void
+static void
 setup_quirks(void)
 {
 	setquirk(".*", ".*", ".*", EWMH_WINDOW_TYPE_SPLASH |
@@ -13326,7 +13353,7 @@ enum {
 	SWM_S_STACK_MARK_HORIZONTAL_FLIP,
 };
 
-int
+static int
 setconfvalue(uint8_t asop, const char *selector, const char *value, int flags,
     char **emsg)
 {
@@ -13761,7 +13788,7 @@ setconfvalue(uint8_t asop, const char *selector, const char *value, int flags,
 	return (0);
 }
 
-int
+static int
 setconfmodkey(uint8_t asop, const char *selector, const char *value, int flags,
     char **emsg)
 {
@@ -13789,7 +13816,7 @@ setconfmodkey(uint8_t asop, const char *selector, const char *value, int flags,
 	return (0);
 }
 
-int
+static int
 setconfcancelkey(uint8_t asop, const char *selector, const char *value,
     int flags, char **emsg)
 {
@@ -13896,7 +13923,7 @@ setconfcolorlist(uint8_t asop, const char *selector, const char *value,
 	return (parseconfcolor(asop, selector, value, flags, true, emsg));
 }
 
-int
+static int
 setconfregion(uint8_t asop, const char *selector, const char *value, int flags,
     char **emsg)
 {
@@ -13964,7 +13991,7 @@ setconfregion(uint8_t asop, const char *selector, const char *value, int flags,
 	return (0);
 }
 
-int
+static int
 setautorun(uint8_t asop, const char *selector, const char *value, int flags,
     char **emsg)
 {
@@ -14052,7 +14079,7 @@ setautorun(uint8_t asop, const char *selector, const char *value, int flags,
 	return (0);
 }
 
-int
+static int
 setlayout(uint8_t asop, const char *selector, const char *value, int flags,
     char **emsg)
 {
@@ -14268,14 +14295,14 @@ struct config_option configopt[] = {
 	{ "stack_mark_horizontal_flip",	setconfvalue,	SWM_S_STACK_MARK_HORIZONTAL_FLIP },
 };
 
-void
+static void
 _add_startup_exception(const char *fmt, va_list ap)
 {
 	if (vasprintf(&startup_exception, fmt, ap) == -1)
 		warn("%s: asprintf", __func__);
 }
 
-void
+static void
 add_startup_exception(const char *fmt, ...)
 {
 	va_list ap;
@@ -14293,7 +14320,7 @@ add_startup_exception(const char *fmt, ...)
 	va_end(ap);
 }
 
-int
+static int
 conf_load(const char *filename, int keymapping)
 {
 	struct config_option	*opt = NULL;
@@ -14463,7 +14490,7 @@ strtoint32(const char *str, int32_t min, int32_t max, int *fail)
 	return (ret);
 }
 
-pid_t
+static pid_t
 window_get_pid(xcb_window_t win)
 {
 	pid_t				ret = 0;
@@ -14491,7 +14518,7 @@ window_get_pid(xcb_window_t win)
 	return (ret);
 }
 
-int
+static int
 get_swm_ws(xcb_window_t id)
 {
 	int				ws_idx = -2, fail;
@@ -14511,7 +14538,7 @@ get_swm_ws(xcb_window_t id)
 	return (ws_idx);
 }
 
-int
+static int
 get_ws_id(struct ws_win *win)
 {
 	xcb_get_property_reply_t	*gpr;
@@ -14541,7 +14568,7 @@ get_ws_id(struct ws_win *win)
 	return (wsid);
 }
 
-int
+static int
 reparent_window(struct ws_win *win)
 {
 	xcb_screen_t		*s;
@@ -14604,7 +14631,7 @@ reparent_window(struct ws_win *win)
 	return (0);
 }
 
-void
+static void
 unparent_window(struct ws_win *win)
 {
 	if (!win_reparented(win))
@@ -14631,7 +14658,7 @@ unparent_window(struct ws_win *win)
 	win->frame = XCB_WINDOW_NONE;
 }
 
-struct ws_win *
+static struct ws_win *
 manage_window(xcb_window_t id, int spawn_pos, bool mapping)
 {
 	struct ws_win				*win = NULL, *w;
@@ -15051,7 +15078,7 @@ update_gravity(struct ws_win *win)
 	    get_gravity_label(win->gravity));
 }
 
-void
+static void
 free_window(struct ws_win *win)
 {
 	DNPRINTF(SWM_D_MISC, "win %#x\n", WINID(win));
@@ -15068,7 +15095,7 @@ free_window(struct ws_win *win)
 	DNPRINTF(SWM_D_MISC, "done\n");
 }
 
-void
+static void
 unmanage_window(struct ws_win *win)
 {
 	if (win == NULL)
@@ -15096,7 +15123,7 @@ unmanage_window(struct ws_win *win)
 	free_window(win);
 }
 
-const char *
+static const char *
 get_randr_event_label(xcb_generic_event_t *e)
 {
 	const char		*label = NULL;
@@ -15141,7 +15168,7 @@ get_randr_event_label(xcb_generic_event_t *e)
 	return (label);
 }
 
-const char *
+static const char *
 get_event_label(xcb_generic_event_t *e)
 {
 	const char	*label = NULL;
@@ -15172,7 +15199,7 @@ get_event_label(xcb_generic_event_t *e)
 }
 
 /* events */
-void
+static void
 expose(xcb_expose_event_t *e)
 {
 	struct ws_win		*w;
@@ -15195,7 +15222,7 @@ expose(xcb_expose_event_t *e)
 	DNPRINTF(SWM_D_EVENT, "done\n");
 }
 
-void
+static void
 focusin(xcb_focus_in_event_t *e)
 {
 	struct swm_region	*r;
@@ -15263,7 +15290,7 @@ focusout(xcb_focus_out_event_t *e)
 	    get_notify_detail_label(e->detail), e->detail);
 }
 
-void
+static void
 keypress(xcb_key_press_event_t *e)
 {
 	struct action		*ap;
@@ -15315,7 +15342,7 @@ out:
 	DNPRINTF(SWM_D_EVENT, "done\n");
 }
 
-void
+static void
 keyrelease(xcb_key_release_event_t *e)
 {
 	struct action		*ap;
@@ -15353,7 +15380,7 @@ keyrelease(xcb_key_release_event_t *e)
 	DNPRINTF(SWM_D_EVENT, "done\n");
 }
 
-void
+static void
 buttonpress(xcb_button_press_event_t *e)
 {
 	struct action		*ap;
@@ -15419,7 +15446,7 @@ out:
 	DNPRINTF(SWM_D_FOCUS, "done\n");
 }
 
-void
+static void
 buttonrelease(xcb_button_release_event_t *e)
 {
 	struct action		*ap;
@@ -15458,7 +15485,7 @@ buttonrelease(xcb_button_release_event_t *e)
 	DNPRINTF(SWM_D_FOCUS, "done\n");
 }
 
-const char *
+static const char *
 get_win_input_model_label(struct ws_win *win)
 {
 	const char	*inputmodel;
@@ -15478,7 +15505,7 @@ get_win_input_model_label(struct ws_win *win)
 	return (inputmodel);
 }
 
-void
+static void
 print_win_geom(xcb_window_t w)
 {
 	xcb_get_geometry_reply_t	*wa;
@@ -15496,7 +15523,7 @@ print_win_geom(xcb_window_t w)
 	free(wa);
 }
 
-const char *
+static const char *
 get_stack_mode_label(uint8_t mode)
 {
 	const char	*label;
@@ -15524,7 +15551,7 @@ get_stack_mode_label(uint8_t mode)
 	return (label);
 }
 
-void
+static void
 configurerequest(xcb_configure_request_event_t *e)
 {
 	struct ws_win		*win;
@@ -15653,7 +15680,7 @@ configurerequest(xcb_configure_request_event_t *e)
 	DNPRINTF(SWM_D_EVENT, "done\n");
 }
 
-void
+static void
 configurenotify(xcb_configure_notify_event_t *e)
 {
 	struct ws_win		*win;
@@ -15675,7 +15702,7 @@ configurenotify(xcb_configure_notify_event_t *e)
 	DNPRINTF(SWM_D_EVENT, "done\n");
 }
 
-void
+static void
 destroynotify(xcb_destroy_notify_event_t *e)
 {
 	struct ws_win		*win;
@@ -15733,7 +15760,7 @@ destroynotify(xcb_destroy_notify_event_t *e)
 	DNPRINTF(SWM_D_EVENT, "done\n");
 }
 
-const char *
+static const char *
 get_notify_detail_label(uint8_t detail)
 {
 	const char *label;
@@ -15770,7 +15797,7 @@ get_notify_detail_label(uint8_t detail)
 	return (label);
 }
 
-const char *
+static const char *
 get_notify_mode_label(uint8_t mode)
 {
 	const char *label;
@@ -15795,7 +15822,7 @@ get_notify_mode_label(uint8_t mode)
 	return (label);
 }
 
-const char *
+static const char *
 get_state_mask_label(uint16_t state)
 {
 	const char *label;
@@ -15850,7 +15877,7 @@ get_state_mask_label(uint16_t state)
 	return (label);
 }
 
-const char *
+static const char *
 get_wm_state_label(uint32_t state)
 {
 	const char *label;
@@ -15871,7 +15898,7 @@ get_wm_state_label(uint32_t state)
 	return (label);
 }
 
-void
+static void
 enternotify(xcb_enter_notify_event_t *e)
 {
 	struct ws_win		*win = NULL;
@@ -15926,7 +15953,7 @@ enternotify(xcb_enter_notify_event_t *e)
 	DNPRINTF(SWM_D_EVENT, "done\n");
 }
 
-void
+static void
 leavenotify(xcb_leave_notify_event_t *e)
 {
 	event_time = e->time;
@@ -15940,7 +15967,7 @@ leavenotify(xcb_leave_notify_event_t *e)
 	    get_state_mask_label(e->state), e->state);
 }
 
-void
+static void
 mapnotify(xcb_map_notify_event_t *e)
 {
 	struct ws_win		*win;
@@ -15973,7 +16000,7 @@ mapnotify(xcb_map_notify_event_t *e)
 	}
 }
 
-const char *
+static const char *
 get_mapping_notify_label(uint8_t request)
 {
 	const char *label;
@@ -15995,7 +16022,7 @@ get_mapping_notify_label(uint8_t request)
 	return (label);
 }
 
-void
+static void
 mappingnotify(xcb_mapping_notify_event_t *e)
 {
 	DNPRINTF(SWM_D_EVENT, "request: %s (%u), first_keycode: %u, "
@@ -16011,7 +16038,7 @@ mappingnotify(xcb_mapping_notify_event_t *e)
 	DNPRINTF(SWM_D_EVENT, "done\n");
 }
 
-void
+static void
 click_focus(struct swm_screen *s, xcb_window_t id, int x, int y)
 {
 	struct swm_region	*r, *rr;
@@ -16069,7 +16096,7 @@ click_focus(struct swm_screen *s, xcb_window_t id, int x, int y)
 	}
 }
 
-void
+static void
 focus_window(xcb_window_t id)
 {
 	struct ws_win			*w;
@@ -16085,7 +16112,7 @@ focus_window(xcb_window_t id)
 		focus_window_region(id);
 }
 
-void
+static void
 focus_window_region(xcb_window_t id)
 {
 	struct swm_region		*r;
@@ -16110,7 +16137,7 @@ focus_window_region(xcb_window_t id)
 	focus_region(r);
 }
 
-void
+static void
 maprequest(xcb_map_request_event_t *e)
 {
 	struct swm_screen	*s;
@@ -16192,7 +16219,7 @@ maprequest(xcb_map_request_event_t *e)
 	DNPRINTF(SWM_D_EVENT, "done\n");
 }
 
-void
+static void
 motionnotify(xcb_motion_notify_event_t *e)
 {
 	struct swm_screen	*s;
@@ -16232,7 +16259,7 @@ motionnotify(xcb_motion_notify_event_t *e)
 	DNPRINTF(SWM_D_EVENT, "done\n");
 }
 
-void
+static void
 propertynotify(xcb_property_notify_event_t *e)
 {
 	struct ws_win		*win;
@@ -16278,7 +16305,7 @@ propertynotify(xcb_property_notify_event_t *e)
 	DNPRINTF(SWM_D_EVENT, "done\n");
 }
 
-void
+static void
 reparentnotify(xcb_reparent_notify_event_t *e)
 {
 	DNPRINTF(SWM_D_EVENT, "event: %#x, win %#x, parent: %#x, "
@@ -16286,7 +16313,7 @@ reparentnotify(xcb_reparent_notify_event_t *e)
 	    e->parent, e->x, e->y, e->override_redirect);
 }
 
-void
+static void
 unmapnotify(xcb_unmap_notify_event_t *e)
 {
 	struct swm_screen	*s;
@@ -16373,7 +16400,7 @@ unmapnotify(xcb_unmap_notify_event_t *e)
 	DNPRINTF(SWM_D_EVENT, "done\n");
 }
 
-const char *
+static const char *
 get_source_type_label(uint32_t type)
 {
 	const char *label;
@@ -16404,7 +16431,7 @@ win_gravity(struct ws_win *win)
 		return (XCB_GRAVITY_NORTH_WEST);
 }
 
-void
+static void
 clientmessage(xcb_client_message_event_t *e)
 {
 	struct swm_screen	*s;
@@ -16677,7 +16704,7 @@ clientmessage(xcb_client_message_event_t *e)
 	DNPRINTF(SWM_D_EVENT, "done\n");
 }
 
-const char *
+static const char *
 get_moveresize_direction_label(uint32_t type)
 {
 	switch (type) {
@@ -16700,7 +16727,7 @@ get_moveresize_direction_label(uint32_t type)
 	return "Invalid";
 }
 
-void
+static void
 moveresize_win(struct ws_win *win, xcb_client_message_event_t *e)
 {
 	struct binding		b;
@@ -16777,7 +16804,7 @@ moveresize_win(struct ws_win *win, xcb_client_message_event_t *e)
 	DNPRINTF(SWM_D_EVENT, "done.\n");
 }
 
-int
+static int
 enable_wm(void)
 {
 	int			num_screens, i;
@@ -16813,7 +16840,7 @@ enable_wm(void)
 	return (0);
 }
 
-const char *
+static const char *
 get_randr_rotation_label(int rot)
 {
 	const char *label;
@@ -16838,7 +16865,7 @@ get_randr_rotation_label(int rot)
 	return (label);
 }
 
-void
+static void
 new_region(struct swm_screen *s, int16_t x, int16_t y, uint16_t w, uint16_t h,
     uint16_t rot)
 {
@@ -16956,7 +16983,7 @@ new_region(struct swm_screen *s, int16_t x, int16_t y, uint16_t w, uint16_t h,
 	xcb_map_window(conn, r->id);
 }
 
-void
+static void
 scan_randr(struct swm_screen *s)
 {
 #ifdef XCB_RANDR_GET_SCREEN_RESOURCES_CURRENT /* RandR 1.3 */
@@ -17085,7 +17112,7 @@ out:
 	DNPRINTF(SWM_D_MISC, "done.\n");
 }
 
-void
+static void
 screenchange(xcb_randr_screen_change_notify_event_t *e)
 {
 	struct swm_screen		*s;
@@ -17141,7 +17168,7 @@ screenchange(xcb_randr_screen_change_notify_event_t *e)
 	DNPRINTF(SWM_D_EVENT, "done.\n");
 }
 
-void
+static void
 grab_windows(void)
 {
 	struct workspace		*ws;
@@ -17225,7 +17252,7 @@ grab_windows(void)
 	DNPRINTF(SWM_D_INIT, "done\n");
 }
 
-void
+static void
 setup_focus(void)
 {
 	struct swm_region	*r;
@@ -17276,7 +17303,7 @@ layout_order_reset(void)
 	layout_order_count = i;
 }
 
-void
+static void
 setup_screens(void)
 {
 	struct swm_screen		*s;
@@ -17441,7 +17468,7 @@ setup_screens(void)
 	}
 }
 
-void
+static void
 setup_extensions(void)
 {
 	const xcb_query_extension_reply_t	*qep;
@@ -17509,7 +17536,7 @@ setup_extensions(void)
 	    YESNO(xinput2_support), YESNO(xinput2_raw));
 }
 
-void
+static void
 setup_globals(void)
 {
 	if ((clock_format = strdup("%a %b %d %R %Z %Y")) == NULL)
@@ -17579,7 +17606,7 @@ setup_globals(void)
 	layout_order_reset();
 }
 
-void
+static void
 scan_config(void)
 {
 	struct stat		sb;
@@ -17675,7 +17702,7 @@ done:
 	DNPRINTF(SWM_D_INIT, "done\n");
 }
 
-void
+static void
 shutdown_cleanup(void)
 {
 	struct swm_screen	*s;
@@ -17822,7 +17849,7 @@ shutdown_cleanup(void)
 	XCloseDisplay(display);
 }
 
-void
+static void
 event_error(xcb_generic_error_t *e)
 {
 	(void)e;
@@ -17834,7 +17861,7 @@ event_error(xcb_generic_error_t *e)
 	    e->sequence, e->resource_id, e->minor_code);
 }
 
-void
+static void
 event_handle(xcb_generic_event_t *evt)
 {
 	uint8_t			type = XCB_EVENT_RESPONSE_TYPE(evt);
